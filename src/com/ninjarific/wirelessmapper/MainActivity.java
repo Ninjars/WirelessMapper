@@ -2,8 +2,6 @@ package com.ninjarific.wirelessmapper;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.Dialog;
-import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.Intent;
@@ -11,7 +9,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.ninjarific.wirelessmapper.Constants;
+import com.j256.ormlite.android.apptools.OpenHelperManager;
+import com.ninjarific.wirelessmapper.database.DatabaseHelper;
 import com.ninjarific.wirelessmapper.listeners.ScanListener;
 import com.ninjarific.wirelessmapper.wifidata.DataManager;
 
@@ -23,6 +22,7 @@ public class MainActivity extends Activity {
 	private DataManager mDataManager;
 	private ScanListener mScanListener;
 	private Intent mScanIntent;
+	private DatabaseHelper mDatabaseHelper;
 	
 	
 	/* Called when the activity is first created. */
@@ -34,6 +34,10 @@ public class MainActivity extends Activity {
 		
 		
 		mDataManager = new DataManager(this);
+		
+
+		mDatabaseHelper = OpenHelperManager.getHelper(this, DatabaseHelper.class);
+		mDatabaseHelper.getWritableDatabase();
 
 		// toast for notes - we make a dummy one that we will reuse later, avoiding overlapping toasts
         mToast = Toast.makeText(getApplicationContext(), "", Toast.LENGTH_SHORT);

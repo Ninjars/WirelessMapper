@@ -33,13 +33,13 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper  {
 	// Method is called during creation of the database
 	@Override
 	public void onCreate(SQLiteDatabase db, ConnectionSource connectionSource) {
-		try {
-			Log.i(DatabaseHelper.class.getName(), "onCreate");
-			TableUtils.createTable(connectionSource, WifiData.class);
-			TableUtils.createTable(connectionSource, WifiScanResult.class);
-		} catch (SQLException e) {
-			Log.e(DatabaseHelper.class.getName(), "Can't create database", e);
-			throw new RuntimeException(e);
+		// Create every table.
+		for (Class<?> modelClass : DatabaseCatalogue.modelClasses) {
+			try {
+				TableUtils.createTable(connectionSource, modelClass);
+			} catch (SQLException e) {
+				Log.i(TAG, "Exception while creating table", e);
+			}
 		}
 
 //		// here we try inserting data in the on-create as a test
@@ -105,5 +105,10 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper  {
 			mWifiScanResultRuntimeExceptionDao = getRuntimeExceptionDao(WifiScanResult.class);
 		}
 		return mWifiScanResultRuntimeExceptionDao;
+	}
+	
+	private static String getDatabasePath(Context context) {
+		// return context.getFilesDir() + "/databases/" + DATABASE_NAME;
+		return context.getDatabasePath(DATABASE_NAME).getPath();
 	}
 }
