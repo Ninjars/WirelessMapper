@@ -1,15 +1,15 @@
-package com.ninjarific.wirelessmapper.wifidata;
+package com.ninjarific.wirelessmapper.database.orm.models;
+
+import android.net.wifi.ScanResult;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable(tableName = "WifiData")
-public class WifiData {
+public class WifiData extends BaseModel<Long>{
 	@SuppressWarnings("unused")
 	private static final String TAG = "WifiData";
 	
-	@DatabaseField(generatedId=true, canBeNull = false)
-	private long id;
 	@DatabaseField(canBeNull = false)
 	private String ssid;
 	@DatabaseField(canBeNull = false)
@@ -18,16 +18,19 @@ public class WifiData {
 	private int level;
 	@DatabaseField(canBeNull = false)
 	private int freq;
-	@DatabaseField
-	private float accuracy;
+	
+	protected WifiData() {/* for ORMLite use */}
+	
+	public WifiData(ScanResult result) {
+		bssid = result.BSSID;
+		ssid = result.SSID;
+		level = result.level;
+		freq = result.frequency;
+	}
 
 	@Override
 	public String toString() {
 		return getSsid() + " " + getBssid();
-	}
-	
-	public long getId() {
-		return id;
 	}
 	public String getSsid() {
 		return ssid;
@@ -52,11 +55,5 @@ public class WifiData {
 	}
 	public void setFreq(int freq) {
 		this.freq = freq;
-	}
-	public float getAccuracy() {
-		return accuracy;
-	}
-	public void setAccuracy(float accuracy) {
-		this.accuracy = accuracy;
 	}
 }
