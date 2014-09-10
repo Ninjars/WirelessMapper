@@ -1,6 +1,7 @@
 package com.ninjarific.wirelessmapper.database;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -8,6 +9,7 @@ import android.util.Log;
 
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
+import com.j256.ormlite.stmt.PreparedQuery;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 import com.ninjarific.wirelessmapper.database.orm.models.BaseModel;
@@ -93,6 +95,12 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper  {
 		dao.update(object);
 	}
 	
+	public <ID, T extends BaseModel<ID>> List<BaseModel<ID>> query(Class<T> modelClass, PreparedQuery<BaseModel<ID>> query) {
+		@SuppressWarnings("unchecked")
+		RuntimeExceptionDao<BaseModel<ID>, ID> dao = (RuntimeExceptionDao<BaseModel<ID>, ID>) getRuntimeExceptionDaoForModelClass(modelClass);
+		return dao.query(query);
+	}
+	
 	/* Observing */
 	
 	public <ID, T extends BaseModel<ID>> void addChangeObserver(Class<T> modelClass, DatabaseListener<T,ID> listener) {
@@ -120,7 +128,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper  {
 	// A wrapper for getDao() that makes sure we use the right ID class.
 	// use this instead of getDao()
 	@SuppressWarnings("unchecked")
-	private <ID, T extends BaseModel<ID>> ObservableDao<T, ID> getDaoForModelClass(Class <T> c) {
+	public <ID, T extends BaseModel<ID>> ObservableDao<T, ID> getDaoForModelClass(Class <T> c) {
 		try {
 			return (ObservableDao<T, ID>) getDao(c);
 		} catch (SQLException e) {

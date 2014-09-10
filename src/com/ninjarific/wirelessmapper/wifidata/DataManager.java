@@ -1,5 +1,6 @@
 package com.ninjarific.wirelessmapper.wifidata;
 
+import java.sql.SQLException;
 import java.util.List;
 
 import android.content.BroadcastReceiver;
@@ -9,6 +10,9 @@ import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.util.Log;
 
+import com.j256.ormlite.stmt.PreparedQuery;
+import com.j256.ormlite.stmt.QueryBuilder;
+import com.j256.ormlite.stmt.SelectArg;
 import com.ninjarific.wirelessmapper.Constants;
 import com.ninjarific.wirelessmapper.MainActivity;
 import com.ninjarific.wirelessmapper.database.DatabaseHelper;
@@ -102,17 +106,17 @@ public class DataManager {
 	 * Convenience methods to build and run our prepared queries.
 	 */
 
-//	private PreparedQuery<Post> postsForUserQuery = null;
+	private PreparedQuery<WifiData> wifiDataForScanPointQuery = null;
 //	private PreparedQuery<User> usersForPostQuery = null;
-//
-//	private List<Post> lookupPostsForUser(User user) throws SQLException {
-//		if (postsForUserQuery == null) {
-//			postsForUserQuery = makePostsForUserQuery();
-//		}
-//		postsForUserQuery.setArgumentHolderValue(0, user);
-//		return postDao.query(postsForUserQuery);
-//	}
-//
+
+	private List<WifiData> lookupWifiDataForScanPoint(WifiScanPoint point) throws SQLException {
+		if (wifiDataForScanPointQuery == null) {
+			wifiDataForScanPointQuery = makeWifiDataForScanPointQuery();
+		}
+		wifiDataForScanPointQuery.setArgumentHolderValue(0, point);
+		return mDatabaseHelper.getDaoForModelClass(WifiData.class).query(wifiDataForScanPointQuery);
+	}
+
 //	private List<User> lookupUsersForPost(Post post) throws SQLException {
 //		if (usersForPostQuery == null) {
 //			usersForPostQuery = makeUsersForPostQuery();
@@ -120,26 +124,23 @@ public class DataManager {
 //		usersForPostQuery.setArgumentHolderValue(0, post);
 //		return userDao.query(usersForPostQuery);
 //	}
-//
-//	/**
-//	 * Build our query for Post objects that match a User.
-//	 */
-//	private PreparedQuery<Post> makePostsForUserQuery() throws SQLException {
-//		// build our inner query for UserPost objects
-//		QueryBuilder<UserPost, Integer> userPostQb = userPostDao.queryBuilder();
-//		// just select the post-id field
-//		userPostQb.selectColumns(UserPost.POST_ID_FIELD_NAME);
-//		SelectArg userSelectArg = new SelectArg();
-//		// you could also just pass in user1 here
-//		userPostQb.where().eq(UserPost.USER_ID_FIELD_NAME, userSelectArg);
-//
-//		// build our outer query for Post objects
-//		QueryBuilder<Post, Integer> postQb = postDao.queryBuilder();
-//		// where the id matches in the post-id from the inner query
-//		postQb.where().in(Post.ID_FIELD_NAME, userPostQb);
-//		return postQb.prepare();
-//	}
-//
+
+	/**
+	 * Build our query for Post objects that match a User.
+	 */
+	private PreparedQuery<WifiData> makeWifiDataForScanPointQuery() throws SQLException {
+		// build our inner query for UserPost objects
+		QueryBuilder<WifiScanPointData, Long> queryBuilder = mDatabaseHelper.getDaoForModelClass(WifiScanPointData.class).queryBuilder();
+		queryBuilder.selectColumns(WifiScanPointData.DATA_SCAN_ID_FIELD_NAME);
+		SelectArg userSelectArg = new SelectArg();
+		queryBuilder.where().eq(WifiScanPointData.WIFI_SCAN_POINT_ID_FIELD_NAME, userSelectArg);
+
+		QueryBuilder<WifiData, Long> wifiDataQb = mDatabaseHelper.getDaoForModelClass(WifiData.class).queryBuilder();
+		// where the id matches in the post-id from the inner query
+		wifiDataQb.where().in(WifiData.ID_FIELD_NAME, queryBuilder);
+		return wifiDataQb.prepare();
+	}
+
 //	/**
 //	 * Build our query for User objects that match a Post
 //	 */
