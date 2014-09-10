@@ -10,8 +10,10 @@ import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
-import com.ninjarific.wirelessmapper.wifidata.WifiData;
-import com.ninjarific.wirelessmapper.wifidata.WifiScanResult;
+import com.ninjarific.wirelessmapper.database.orm.models.BaseModel;
+import com.ninjarific.wirelessmapper.database.orm.models.ObservableDao;
+import com.ninjarific.wirelessmapper.database.orm.models.WifiData;
+import com.ninjarific.wirelessmapper.database.orm.models.WifiScanPoint;
 
 
 public class DatabaseHelper extends OrmLiteSqliteOpenHelper  {
@@ -20,11 +22,6 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper  {
 	private static final String DATABASE_NAME = "WirelessDatabase.db";
 	
 	private static final int DATABASE_VERSION = 1;
-	
-//	private Dao<WifiData, Integer> mWifiData = null;
-//	private Dao<WifiScanResult, Integer> mWifiScanResult = null;
-	private RuntimeExceptionDao<WifiData, Integer> mWifiDataRuntimeExceptionDao = null;
-	private RuntimeExceptionDao<WifiScanResult, Integer> mWifiScanResultRuntimeExceptionDao = null;
 	
 	public DatabaseHelper(Context context) {
 	    super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -62,7 +59,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper  {
 		try {
 			Log.i(DatabaseHelper.class.getName(), "onUpgrade");
 			TableUtils.dropTable(connectionSource, WifiData.class, true);
-			TableUtils.dropTable(connectionSource, WifiScanResult.class, true);
+			TableUtils.dropTable(connectionSource, WifiScanPoint.class, true);
 			// after we drop the old databases, we create the new ones
 			onCreate(db, connectionSource);
 		} catch (SQLException e) {
@@ -71,44 +68,70 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper  {
 		}
 	}
 	
-//	public Dao<WifiData, Integer> getDao() throws SQLException {
-//		if (mWifiData == null) {
-//			mWifiData = getDao(WifiData.class);
-//		}
-//		return mWifiData;
-//	}
-//	
-//	public Dao<WifiScanResult, Integer> getDao() throws SQLException {
-//		if (mWifiScanResult == null) {
-//			mWifiScanResult = getDao(WifiScanResult.class);
-//		}
-//		return mWifiScanResult;
-//	}
+/* Fetch */
 	
-	/**
-	 * Returns the RuntimeExceptionDao (Database Access Object) version of a Dao for our WifiData class. It will
-	 * create it or just give the cached value. RuntimeExceptionDao only through RuntimeExceptions.
-	 */
-	public RuntimeExceptionDao<WifiData, Integer> getWifiDataDao() {
-		if (mWifiDataRuntimeExceptionDao == null) {
-			mWifiDataRuntimeExceptionDao = getRuntimeExceptionDao(WifiData.class);
-		}
-		return mWifiDataRuntimeExceptionDao;
+	public <ID, T extends BaseModel<ID>> T fetchObject(Class<T> objectClass, ID id) {
+		RuntimeExceptionDao<T, ID> dao = getRuntimeExceptionDaoForModelClass(objectClass);
+		return dao.queryForId(id);
 	}
 	
-	/**
-	 * Returns the RuntimeExceptionDao (Database Access Object) version of a Dao for our WifiScanResult class. It will
-	 * create it or just give the cached value. RuntimeExceptionDao only through RuntimeExceptions.
-	 */
-	public RuntimeExceptionDao<WifiScanResult, Integer> getWifiScanResultDao() {
-		if (mWifiScanResultRuntimeExceptionDao == null) {
-			mWifiScanResultRuntimeExceptionDao = getRuntimeExceptionDao(WifiScanResult.class);
-		}
-		return mWifiScanResultRuntimeExceptionDao;
+	/* Update */
+	
+	public <ID, T extends BaseModel<ID>> void insert(BaseModel<ID> object) {
+		RuntimeExceptionDao<BaseModel<ID>, ID> dao = getRuntimeExceptionDaoForObject(object);
+		dao.create(object);
+		dao.refresh(object);
 	}
 	
-	private static String getDatabasePath(Context context) {
-		// return context.getFilesDir() + "/databases/" + DATABASE_NAME;
-		return context.getDatabasePath(DATABASE_NAME).getPath();
+	public <ID, T extends BaseModel<ID>> void update(BaseModel<ID> object) {
+		RuntimeExceptionDao<BaseModel<ID>, ID> dao = getRuntimeExceptionDaoForObject(object);
+		dao.update(object);
+	}
+	
+	public <ID, T extends BaseModel<ID>> void delete(BaseModel<ID> object) {
+		RuntimeExceptionDao<BaseModel<ID>, ID> dao = getRuntimeExceptionDaoForObject(object);
+		dao.update(object);
+	}
+	
+	/* Observing */
+	
+	public <ID, T extends BaseModel<ID>> void addChangeObserver(Class<T> modelClass, DatabaseListener<T,ID> listener) {
+		ObservableDao<T, ID> dao = getDaoForModelClass(modelClass);
+		if (dao != null) {
+			dao.addDatabaseListener(listener);
+		}
+	}
+	
+	public <ID, T extends BaseModel<ID>> void removeChangeObserver(Class<T> modelClass, DatabaseListener<T,ID> listener){
+		ObservableDao<T, ID> dao = getDaoForModelClass(modelClass);
+		if (dao != null) {
+			dao.removeDatabaseListener(listener);
+		}
+	}
+	
+	/* DAOs */
+	
+	// A wrapper for getRuntimeExceptionDao() that makes sure we use the right ID class.
+	// use this instead of getRuntimeExceptionDao()
+	private <ID, T extends BaseModel<ID>> RuntimeExceptionDao<T, ID> getRuntimeExceptionDaoForModelClass(Class <T> c) {
+		return getRuntimeExceptionDao(c);
+	}
+	
+	// A wrapper for getDao() that makes sure we use the right ID class.
+	// use this instead of getDao()
+	@SuppressWarnings("unchecked")
+	private <ID, T extends BaseModel<ID>> ObservableDao<T, ID> getDaoForModelClass(Class <T> c) {
+		try {
+			return (ObservableDao<T, ID>) getDao(c);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	private <ID, T extends BaseModel<ID>> RuntimeExceptionDao<T, ID> getRuntimeExceptionDaoForObject(BaseModel<ID> object) {
+		return getRuntimeExceptionDaoForModelClass(object.getClass());
 	}
 }

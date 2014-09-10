@@ -11,6 +11,7 @@ import android.widget.Toast;
 
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.ninjarific.wirelessmapper.database.DatabaseHelper;
+import com.ninjarific.wirelessmapper.database.orm.models.WifiScanPoint;
 import com.ninjarific.wirelessmapper.listeners.ScanListener;
 import com.ninjarific.wirelessmapper.wifidata.DataManager;
 
@@ -91,7 +92,7 @@ public class MainActivity extends Activity {
 		ft.commit();
 	}
 
-	public void onScanResult() {
+	public void onScanResult(WifiScanPoint point) {
 		if (DEBUG) Log.i(TAG, "onScanResults()");
 		if (mScanListener != null) {
 			if (DEBUG) Log.i(TAG, "onScanResults() --> ScanListener");

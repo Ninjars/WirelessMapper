@@ -6,7 +6,7 @@ import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable(tableName = "WifiData")
-public class WifiData extends BaseModel<Long>{
+public class WifiData extends BaseModel<Long> {
 	@SuppressWarnings("unused")
 	private static final String TAG = "WifiData";
 	

@@ -12,6 +12,9 @@ import android.util.Log;
 import com.ninjarific.wirelessmapper.Constants;
 import com.ninjarific.wirelessmapper.MainActivity;
 import com.ninjarific.wirelessmapper.database.DatabaseHelper;
+import com.ninjarific.wirelessmapper.database.orm.models.WifiData;
+import com.ninjarific.wirelessmapper.database.orm.models.WifiScanPoint;
+import com.ninjarific.wirelessmapper.database.orm.models.WifiScanPointData;
 
 public class DataManager {
 	private static final String TAG = "DataManager";
@@ -74,8 +77,15 @@ public class DataManager {
 
 	private void onScanResults(List<ScanResult> scanResults) {
 		if (DEBUG) Log.i(TAG, "onScanResults()");
-//    	mWifiDataList.addAll(mWifiDataSource.processScanResults(scanResults)); // TODO: implement adding data to database
-    	mMainActivity.onScanResult();
+		WifiScanPoint point = new WifiScanPoint();
+		mDatabaseHelper.insert(point);
+		for (ScanResult result : scanResults) {
+			WifiData scan = new WifiData(result);
+			mDatabaseHelper.insert(scan);
+			WifiScanPointData data = new WifiScanPointData(point, scan);
+			mDatabaseHelper.insert(data);
+		}
+    	mMainActivity.onScanResult(point);
 	}
 	
 	public List<WifiData> getWifiData() {
@@ -85,5 +95,66 @@ public class DataManager {
 	public void onStop() {
 		mMainActivity.unregisterReceiver(mBroadCastReceiver);	
 	}
+	
+	
+	// TODO:
+	/*
+	 * Convenience methods to build and run our prepared queries.
+	 */
+
+//	private PreparedQuery<Post> postsForUserQuery = null;
+//	private PreparedQuery<User> usersForPostQuery = null;
+//
+//	private List<Post> lookupPostsForUser(User user) throws SQLException {
+//		if (postsForUserQuery == null) {
+//			postsForUserQuery = makePostsForUserQuery();
+//		}
+//		postsForUserQuery.setArgumentHolderValue(0, user);
+//		return postDao.query(postsForUserQuery);
+//	}
+//
+//	private List<User> lookupUsersForPost(Post post) throws SQLException {
+//		if (usersForPostQuery == null) {
+//			usersForPostQuery = makeUsersForPostQuery();
+//		}
+//		usersForPostQuery.setArgumentHolderValue(0, post);
+//		return userDao.query(usersForPostQuery);
+//	}
+//
+//	/**
+//	 * Build our query for Post objects that match a User.
+//	 */
+//	private PreparedQuery<Post> makePostsForUserQuery() throws SQLException {
+//		// build our inner query for UserPost objects
+//		QueryBuilder<UserPost, Integer> userPostQb = userPostDao.queryBuilder();
+//		// just select the post-id field
+//		userPostQb.selectColumns(UserPost.POST_ID_FIELD_NAME);
+//		SelectArg userSelectArg = new SelectArg();
+//		// you could also just pass in user1 here
+//		userPostQb.where().eq(UserPost.USER_ID_FIELD_NAME, userSelectArg);
+//
+//		// build our outer query for Post objects
+//		QueryBuilder<Post, Integer> postQb = postDao.queryBuilder();
+//		// where the id matches in the post-id from the inner query
+//		postQb.where().in(Post.ID_FIELD_NAME, userPostQb);
+//		return postQb.prepare();
+//	}
+//
+//	/**
+//	 * Build our query for User objects that match a Post
+//	 */
+//	private PreparedQuery<User> makeUsersForPostQuery() throws SQLException {
+//		QueryBuilder<UserPost, Integer> userPostQb = userPostDao.queryBuilder();
+//		// this time selecting for the user-id field
+//		userPostQb.selectColumns(UserPost.USER_ID_FIELD_NAME);
+//		SelectArg postSelectArg = new SelectArg();
+//		userPostQb.where().eq(UserPost.POST_ID_FIELD_NAME, postSelectArg);
+//
+//		// build our outer query
+//		QueryBuilder<User, Integer> userQb = userDao.queryBuilder();
+//		// where the user-id matches the inner query's user-id field
+//		userQb.where().in(Post.ID_FIELD_NAME, userPostQb);
+//		return userQb.prepare();
+//	}
 	
 }
