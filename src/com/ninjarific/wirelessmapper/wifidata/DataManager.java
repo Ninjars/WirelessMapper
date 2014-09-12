@@ -16,8 +16,8 @@ import com.j256.ormlite.stmt.SelectArg;
 import com.ninjarific.wirelessmapper.Constants;
 import com.ninjarific.wirelessmapper.MainActivity;
 import com.ninjarific.wirelessmapper.database.DatabaseHelper;
-import com.ninjarific.wirelessmapper.database.orm.models.WifiData;
-import com.ninjarific.wirelessmapper.database.orm.models.WifiScanPoint;
+import com.ninjarific.wirelessmapper.database.orm.models.WifiPoint;
+import com.ninjarific.wirelessmapper.database.orm.models.WifiScan;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiScanPointData;
 
 public class DataManager {
@@ -30,7 +30,7 @@ public class DataManager {
 	private DatabaseHelper mDatabaseHelper;
 	private BroadcastReceiver mBroadCastReceiver;
 
-	private List<WifiData> mWifiDataList;
+	private List<WifiPoint> mWifiDataList;
 
 	private WifiManager mWifiManager;
 	
@@ -81,10 +81,10 @@ public class DataManager {
 
 	private void onScanResults(List<ScanResult> scanResults) {
 		if (DEBUG) Log.i(TAG, "onScanResults()");
-		WifiScanPoint point = new WifiScanPoint();
+		WifiScan point = new WifiScan();
 		mDatabaseHelper.insert(point);
 		for (ScanResult result : scanResults) {
-			WifiData scan = new WifiData(result);
+			WifiPoint scan = new WifiPoint(result);
 			mDatabaseHelper.insert(scan);
 			WifiScanPointData data = new WifiScanPointData(point, scan);
 			mDatabaseHelper.insert(data);
@@ -92,7 +92,7 @@ public class DataManager {
     	mMainActivity.onScanResult(point);
 	}
 	
-	public List<WifiData> getWifiData() {
+	public List<WifiPoint> getWifiData() {
 		return mWifiDataList;
 	}
 
@@ -106,15 +106,15 @@ public class DataManager {
 	 * Convenience methods to build and run our prepared queries.
 	 */
 
-	private PreparedQuery<WifiData> wifiDataForScanPointQuery = null;
+	private PreparedQuery<WifiPoint> wifiDataForScanPointQuery = null;
 //	private PreparedQuery<User> usersForPostQuery = null;
 
-	private List<WifiData> lookupWifiDataForScanPoint(WifiScanPoint point) throws SQLException {
+	private List<WifiPoint> lookupWifiDataForScanPoint(WifiScan point) throws SQLException {
 		if (wifiDataForScanPointQuery == null) {
 			wifiDataForScanPointQuery = makeWifiDataForScanPointQuery();
 		}
 		wifiDataForScanPointQuery.setArgumentHolderValue(0, point);
-		return mDatabaseHelper.getDaoForModelClass(WifiData.class).query(wifiDataForScanPointQuery);
+		return mDatabaseHelper.getDaoForModelClass(WifiPoint.class).query(wifiDataForScanPointQuery);
 	}
 
 //	private List<User> lookupUsersForPost(Post post) throws SQLException {
@@ -128,16 +128,16 @@ public class DataManager {
 	/**
 	 * Build our query for Post objects that match a User.
 	 */
-	private PreparedQuery<WifiData> makeWifiDataForScanPointQuery() throws SQLException {
+	private PreparedQuery<WifiPoint> makeWifiDataForScanPointQuery() throws SQLException {
 		// build our inner query for UserPost objects
 		QueryBuilder<WifiScanPointData, Long> queryBuilder = mDatabaseHelper.getDaoForModelClass(WifiScanPointData.class).queryBuilder();
 		queryBuilder.selectColumns(WifiScanPointData.DATA_SCAN_ID_FIELD_NAME);
 		SelectArg userSelectArg = new SelectArg();
 		queryBuilder.where().eq(WifiScanPointData.WIFI_SCAN_POINT_ID_FIELD_NAME, userSelectArg);
 
-		QueryBuilder<WifiData, Long> wifiDataQb = mDatabaseHelper.getDaoForModelClass(WifiData.class).queryBuilder();
+		QueryBuilder<WifiPoint, Long> wifiDataQb = mDatabaseHelper.getDaoForModelClass(WifiPoint.class).queryBuilder();
 		// where the id matches in the post-id from the inner query
-		wifiDataQb.where().in(WifiData.ID_FIELD_NAME, queryBuilder);
+		wifiDataQb.where().in(WifiPoint.ID_FIELD_NAME, queryBuilder);
 		return wifiDataQb.prepare();
 	}
 

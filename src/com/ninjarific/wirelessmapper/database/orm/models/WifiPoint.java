@@ -6,7 +6,7 @@ import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable(tableName = "WifiData")
-public class WifiData extends BaseModel<Long> {
+public class WifiPoint extends BaseModel<Long> {
 	@SuppressWarnings("unused")
 	private static final String TAG = "WifiData";
 	
@@ -19,9 +19,9 @@ public class WifiData extends BaseModel<Long> {
 	@DatabaseField(canBeNull = false)
 	private int freq;
 	
-	protected WifiData() {/* for ORMLite use */}
+	protected WifiPoint() {/* for ORMLite use */}
 	
-	public WifiData(ScanResult result) {
+	public WifiPoint(ScanResult result) {
 		bssid = result.BSSID;
 		ssid = result.SSID;
 		level = result.level;
