@@ -6,6 +6,7 @@ import java.util.List;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.util.Log;
@@ -37,6 +38,7 @@ public class DataManager {
 	public DataManager(MainActivity activity) {
 		mMainActivity = activity;
 		// TODO: setup database
+		mDatabaseHelper = new DatabaseHelper(activity);
 		
 		// Wifi linkup
 		mWifiManager = (WifiManager) mMainActivity.getSystemService(Context.WIFI_SERVICE);
@@ -50,9 +52,10 @@ public class DataManager {
         	@Override
             public void onReceive(Context c, Intent intent) {
         		if (DEBUG) Log.i(TAG, "onReceive() broadcast intent");
-        		((MainActivity) c).getDataManager().onScanResults(mWifiManager.getScanResults());
+        		DataManager.this.onScanResults(mWifiManager.getScanResults());
             }
         };
+        mMainActivity.registerReceiver(mBroadCastReceiver,  new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
 	}
 	
 	private void enableWifi() {
@@ -61,10 +64,13 @@ public class DataManager {
 			mMainActivity.showToastMessage("Enabling WiFi");
 			
 		    mWifiManager.setWifiEnabled(true);
+		} else {
+			if (DEBUG) Log.d(TAG, "Wifi already enabled");
 		}
 	}
 	
 	public void startScan() {
+		if (DEBUG) Log.i(TAG, "startScan()");
 		enableWifi();
 		mMainActivity.showToastMessage("Scanning");
 		mWifiManager.startScan();
@@ -76,24 +82,42 @@ public class DataManager {
 //		mWifiDataList.clear();
 //		mMainActivity.onDataSetChanged();
 //	}
-	
-	
 
 	private void onScanResults(List<ScanResult> scanResults) {
-		if (DEBUG) Log.i(TAG, "onScanResults()");
-		WifiScan point = new WifiScan();
-		mDatabaseHelper.insert(point);
+		if (DEBUG) Log.i(TAG, "onScanResults() count " + scanResults.size());
+		WifiScan scan = new WifiScan();
+		mDatabaseHelper.insert(scan);
 		for (ScanResult result : scanResults) {
-			WifiPoint scan = new WifiPoint(result);
-			mDatabaseHelper.insert(scan);
-			WifiScanPointData data = new WifiScanPointData(point, scan);
+			WifiPoint point = new WifiPoint(result);
+			mDatabaseHelper.insert(point);
+			WifiScanPointData data = new WifiScanPointData(scan, point);
 			mDatabaseHelper.insert(data);
 		}
-    	mMainActivity.onScanResult(point);
+    	mMainActivity.onScanResult(scan);
 	}
 	
-	public List<WifiPoint> getWifiData() {
-		return mWifiDataList;
+	public List<WifiScan> getAllWifiScanObjects() {
+		try {
+			return getAllScans();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	/*
+	 * returns all the hotspots picked up by a scan
+	 */
+	public List<WifiPoint> getPointsForScan(WifiScan scan) {
+		if (DEBUG) Log.i(TAG, "getPointsForScan()");
+		try {
+			List<WifiPoint> data = lookupWifiDataForScan(scan);
+			if (DEBUG) Log.i(TAG, "\t data size: " + data.size());
+			return data;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	public void onStop() {
@@ -106,15 +130,23 @@ public class DataManager {
 	 * Convenience methods to build and run our prepared queries.
 	 */
 
-	private PreparedQuery<WifiPoint> wifiDataForScanPointQuery = null;
+	private PreparedQuery<WifiScan> getAllScansQuery = null;
+	private PreparedQuery<WifiPoint> wifiDataForScanQuery = null;
 //	private PreparedQuery<User> usersForPostQuery = null;
-
-	private List<WifiPoint> lookupWifiDataForScanPoint(WifiScan point) throws SQLException {
-		if (wifiDataForScanPointQuery == null) {
-			wifiDataForScanPointQuery = makeWifiDataForScanPointQuery();
+	
+	private List<WifiScan> getAllScans() throws SQLException {
+		if (getAllScansQuery == null) {
+			getAllScansQuery = makeGetAllScansQuery();
 		}
-		wifiDataForScanPointQuery.setArgumentHolderValue(0, point);
-		return mDatabaseHelper.getDaoForModelClass(WifiPoint.class).query(wifiDataForScanPointQuery);
+		return mDatabaseHelper.getDaoForModelClass(WifiScan.class).query(getAllScansQuery);
+	}
+	
+	private List<WifiPoint> lookupWifiDataForScan(WifiScan scan) throws SQLException {
+		if (wifiDataForScanQuery == null) {
+			wifiDataForScanQuery = makeWifiDataForScanQuery();
+		}
+		wifiDataForScanQuery.setArgumentHolderValue(0, scan);
+		return mDatabaseHelper.getDaoForModelClass(WifiPoint.class).query(wifiDataForScanQuery);
 	}
 
 //	private List<User> lookupUsersForPost(Post post) throws SQLException {
@@ -126,9 +158,18 @@ public class DataManager {
 //	}
 
 	/**
-	 * Build our query for Post objects that match a User.
+	 * Build our query for all wifi scan objects
 	 */
-	private PreparedQuery<WifiPoint> makeWifiDataForScanPointQuery() throws SQLException {
+	private PreparedQuery<WifiScan> makeGetAllScansQuery() throws SQLException {
+		// build our inner query for UserPost objects
+		QueryBuilder<WifiScan, Long> queryBuilder = mDatabaseHelper.getDaoForModelClass(WifiScan.class).queryBuilder();
+		return queryBuilder.prepare();
+	}
+	
+	/**
+	 * Build our query for all wifi points that were detected by a scan
+	 */
+	private PreparedQuery<WifiPoint> makeWifiDataForScanQuery() throws SQLException {
 		// build our inner query for UserPost objects
 		QueryBuilder<WifiScanPointData, Long> queryBuilder = mDatabaseHelper.getDaoForModelClass(WifiScanPointData.class).queryBuilder();
 		queryBuilder.selectColumns(WifiScanPointData.DATA_SCAN_ID_FIELD_NAME);

@@ -15,8 +15,8 @@ public class WifiScanPointData extends BaseModel<Long> {
 	
 	public WifiScanPointData() {/* for ORMLite use */}
 	
-	public WifiScanPointData(WifiScan point, WifiPoint data) {
-		scanPoint = point;
+	public WifiScanPointData(WifiScan scanPoint, WifiPoint data) {
+		this.scanPoint = scanPoint;
 		scanData = data;
 	}
 }

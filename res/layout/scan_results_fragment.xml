@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/resultList"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" 
+    android:background="@color/debug_1a"
+    >
+    
+    <!-- Controls -->
+    <LinearLayout 
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        style="?android:attr/buttonBarStyle"
+	    android:background="@color/debug_1b"
+	    >
+	    <Button
+	        android:id="@+id/buttonScan"
+	        android:layout_width="0dp"
+	        android:layout_weight="2"
+	        android:layout_height="wrap_content"
+	        android:text="@string/btn_scan"
+	        style="?android:attr/buttonBarButtonStyle" />
+	    <Button
+	        android:id="@+id/buttonClear"
+	        android:layout_width="0dp"
+	        android:layout_height="wrap_content"
+	        android:layout_weight="1"
+	        android:text="@string/btn_clear"
+	        style="?android:attr/buttonBarButtonStyle" />
+    </LinearLayout>
+   
+    <!-- Results List -->
+    <ListView
+        android:id="@+id/list"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+	    android:background="@color/debug_1c" />
+    
+
+</LinearLayout>

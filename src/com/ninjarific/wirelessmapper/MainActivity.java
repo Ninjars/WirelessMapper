@@ -1,10 +1,11 @@
 package com.ninjarific.wirelessmapper;
 
+import java.util.ArrayList;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
@@ -13,6 +14,7 @@ import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.ninjarific.wirelessmapper.database.DatabaseHelper;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiScan;
 import com.ninjarific.wirelessmapper.listeners.ScanListener;
+import com.ninjarific.wirelessmapper.ui.DebugDataFragment;
 import com.ninjarific.wirelessmapper.wifidata.DataManager;
 
 public class MainActivity extends Activity {
@@ -21,8 +23,7 @@ public class MainActivity extends Activity {
 	
 	private Toast mToast;
 	private DataManager mDataManager;
-	private ScanListener mScanListener;
-	private Intent mScanIntent;
+	private ArrayList<ScanListener> mScanListener;
 	private DatabaseHelper mDatabaseHelper;
 	
 	
@@ -32,6 +33,7 @@ public class MainActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		mScanListener = new ArrayList<ScanListener>();
 		
 		
 		mDataManager = new DataManager(this);
@@ -44,15 +46,10 @@ public class MainActivity extends Activity {
         mToast = Toast.makeText(getApplicationContext(), "", Toast.LENGTH_SHORT);
         mToast.cancel();
 
-//		setContentFragment(null); // create main fragment and assign here
+        DebugDataFragment frag = new DebugDataFragment();
+		setContentFragment(frag); // create main fragment and assign here
+		mScanListener.add(frag);
         
-        // WIP start on a background scanning service
-//        //create ScanService
-//        mScanIntent = new Intent(this, ScanService.class);
-//        //configure service
-//        mScanIntent.setData(Uri.parse(dataUrl));
-//        //start service - launches onHandleIntent()
-//        this.startService(mScanIntent);
     }
 	
 	public DataManager getDataManager() {
@@ -61,7 +58,9 @@ public class MainActivity extends Activity {
 
 	@Override
 	protected void onStart() {
+		if (DEBUG) Log.i(TAG, "onStart()");
 		super.onStart();
+		mDataManager.startScan();
 	}
 	
 	@Override
@@ -81,6 +80,7 @@ public class MainActivity extends Activity {
 	}	
     
     public void showToastMessage(String message) {
+		if (DEBUG) Log.i(TAG, "showToastMessage()");
 		mToast.setText(message);
 		mToast.setDuration(Toast.LENGTH_SHORT);
 		mToast.show();
@@ -94,19 +94,18 @@ public class MainActivity extends Activity {
 
 	public void onScanResult(WifiScan point) {
 		if (DEBUG) Log.i(TAG, "onScanResults()");
-		if (mScanListener != null) {
+		for (ScanListener l : mScanListener) {
 			if (DEBUG) Log.i(TAG, "onScanResults() --> ScanListener");
-			mScanListener.onScanResult();
+			l.onScanResult(point);
 		}
     	mToast.cancel();		
 	}
 
 	public void onDataSetChanged() {
-		if (mScanListener != null) {
+		for (ScanListener l : mScanListener) {
 			if (DEBUG) Log.i(TAG, "onScanResults() --> ScanListener");
-			mScanListener.onDataChanged();
+			l.onDataChanged();
 		}
-		
 	}    
     
 }

@@ -1,5 +1,19 @@
 <resources>
 
+    
+    <color name="debug_1a">#1144AA</color>
+    <color name="debug_1b">#4575D4</color>
+    <color name="debug_1c">#6B8FD4</color>
+    
+    <color name="debug_2a">#ffd100</color>
+    <color name="debug_2b">#bfa530</color>
+    <color name="debug_2c">#a68800</color>
+    
+    <color name="debug_3a">#ff6f00</color>
+    <color name="debug_3b">#bf6e30</color>
+    <color name="debug_3c">#a64800</color>
+    
     <color name="black_overlay">#66000000</color>
+    <color name="text_dark">#333333</color>
 
 </resources>
