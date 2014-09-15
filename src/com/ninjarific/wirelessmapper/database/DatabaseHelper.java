@@ -8,12 +8,12 @@ import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
+import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
 import com.j256.ormlite.stmt.PreparedQuery;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 import com.ninjarific.wirelessmapper.database.orm.models.BaseModel;
-import com.ninjarific.wirelessmapper.database.orm.models.ObservableDao;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiPoint;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiScan;
 
@@ -101,22 +101,6 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper  {
 		return dao.query(query);
 	}
 	
-	/* Observing */
-	
-	public <ID, T extends BaseModel<ID>> void addChangeObserver(Class<T> modelClass, DatabaseListener<T,ID> listener) {
-		ObservableDao<T, ID> dao = getDaoForModelClass(modelClass);
-		if (dao != null) {
-			dao.addDatabaseListener(listener);
-		}
-	}
-	
-	public <ID, T extends BaseModel<ID>> void removeChangeObserver(Class<T> modelClass, DatabaseListener<T,ID> listener){
-		ObservableDao<T, ID> dao = getDaoForModelClass(modelClass);
-		if (dao != null) {
-			dao.removeDatabaseListener(listener);
-		}
-	}
-	
 	/* DAOs */
 	
 	// A wrapper for getRuntimeExceptionDao() that makes sure we use the right ID class.
@@ -127,10 +111,11 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper  {
 	
 	// A wrapper for getDao() that makes sure we use the right ID class.
 	// use this instead of getDao()
-	@SuppressWarnings("unchecked")
-	public <ID, T extends BaseModel<ID>> ObservableDao<T, ID> getDaoForModelClass(Class <T> c) {
+	public <ID, T extends BaseModel<ID>> Dao<T, ?> getDaoForModelClass(Class <T> c) {
 		try {
-			return (ObservableDao<T, ID>) getDao(c);
+			Dao<T, ?> dao = getDao(c);
+			Log.i(TAG, "dao type " + dao.getClass().getSimpleName());
+			return dao;
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

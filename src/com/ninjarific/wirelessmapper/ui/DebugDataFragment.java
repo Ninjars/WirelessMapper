@@ -28,7 +28,7 @@ public class DebugDataFragment extends Fragment implements OnClickListener, Scan
 	private static final boolean DEBUG = Constants.DEBUG;
 
 	private Activity mActivity;
-	private ArrayAdapter<WifiPoint> adapter;
+	private ArrayAdapter<WifiPoint> mListAdapter;
 	private ListView mListView;
 	
 	private DataManager mDataManager;
@@ -54,10 +54,9 @@ public class DebugDataFragment extends Fragment implements OnClickListener, Scan
 		mClearButton = (Button) view.findViewById(R.id.buttonClear);
 		mClearButton.setOnClickListener(this);
 		
-		// view adapter for pushing data to list view
-		this.adapter = new ArrayAdapter<WifiPoint>(mActivity.getApplicationContext(), R.layout.row, mWifiDataList);
+		mListAdapter = new ArrayAdapter<WifiPoint>(mActivity.getApplicationContext(), R.layout.row, mWifiDataList);
 		
-		mListView.setAdapter(this.adapter);
+		mListView.setAdapter(this.mListAdapter);
 		
 	    return view;
 	}
@@ -80,6 +79,7 @@ public class DebugDataFragment extends Fragment implements OnClickListener, Scan
 	@Override
 	public void onDataChanged() {
 		// TODO
+		
 		return;
 	}
 
@@ -87,7 +87,10 @@ public class DebugDataFragment extends Fragment implements OnClickListener, Scan
 	public void onScanResult(WifiScan scan) {
 		if (DEBUG) Log.i(TAG, "onScanResult()");
 		mWifiDataList = mDataManager.getPointsForScan(scan);
-		adapter.notifyDataSetChanged();
+		Log.i(TAG, "datalist size: " + mWifiDataList.size());
+		mListAdapter.clear();
+		mListAdapter.addAll(mWifiDataList);
+		mListAdapter.notifyDataSetChanged();
 		
 	}
 
