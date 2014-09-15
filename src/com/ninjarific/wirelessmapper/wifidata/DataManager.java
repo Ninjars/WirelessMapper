@@ -107,33 +107,45 @@ public class DataManager {
 	}
 	
 	/*
-	 * returns all the hotspots picked up by a scan
+	 * returns all the wifi points picked up by a scan
 	 */
 	public List<WifiPoint> getPointsForScan(WifiScan scan) {
 		if (DEBUG) Log.i(TAG, "getPointsForScan()");
-		try {
-			List<WifiPoint> data = lookupWifiDataForScan(scan);
-			if (DEBUG) Log.i(TAG, "\t data size: " + data.size());
-			return data;
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return null;
+		List<WifiPoint> data = lookupWifiPointForScan(scan);
+		if (DEBUG) if (data != null) {
+			Log.i(TAG, "\t data size: " + data.size());
+		} else {
+			Log.i(TAG, "\t data is null");
 		}
+		return data;
+	}
+	
+	/*
+	 * returns all the scans that detected a point
+	 */
+	public List<WifiScan> getScansForPoint(WifiPoint point) {
+		if (DEBUG) Log.i(TAG, "getScansForPoint()");
+		List<WifiScan> data = lookupWifiScanForPoint(point);
+		if (DEBUG) if (data != null) {
+			Log.i(TAG, "\t data size: " + data.size());
+		} else {
+			Log.i(TAG, "\t data is null");
+		}
+		return data;
 	}
 
 	public void onStop() {
 		mMainActivity.unregisterReceiver(mBroadCastReceiver);	
 	}
 	
-	
-	// TODO:
 	/*
 	 * Convenience methods to build and run our prepared queries.
 	 */
 
 	private PreparedQuery<WifiScan> getAllScansQuery = null;
-	private PreparedQuery<WifiPoint> wifiDataForScanQuery = null;
-//	private PreparedQuery<User> usersForPostQuery = null;
+	private PreparedQuery<WifiPoint> wifiPointForScanQuery = null;
+	private PreparedQuery<WifiScan> wifiScanForPointQuery = null;
+	private PreparedQuery<WifiPoint> wifiPointInstancesQuery = null;
 	
 	private List<WifiScan> getAllScans() throws SQLException {
 		if (getAllScansQuery == null) {
@@ -142,62 +154,117 @@ public class DataManager {
 		return mDatabaseHelper.getDaoForModelClass(WifiScan.class).query(getAllScansQuery);
 	}
 	
-	private List<WifiPoint> lookupWifiDataForScan(WifiScan scan) throws SQLException {
-		if (wifiDataForScanQuery == null) {
-			wifiDataForScanQuery = makeWifiDataForScanQuery();
+	private List<WifiPoint> lookupWifiPointForScan(WifiScan scan) {
+		if (wifiPointForScanQuery == null) {
+			wifiPointForScanQuery = makeWifiPointForScanQuery();
 		}
-		wifiDataForScanQuery.setArgumentHolderValue(0, scan);
-		return mDatabaseHelper.getDaoForModelClass(WifiPoint.class).query(wifiDataForScanQuery);
+		try {
+			wifiPointForScanQuery.setArgumentHolderValue(0, scan);
+			return mDatabaseHelper.getDaoForModelClass(WifiPoint.class).query(wifiPointForScanQuery);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 
-//	private List<User> lookupUsersForPost(Post post) throws SQLException {
-//		if (usersForPostQuery == null) {
-//			usersForPostQuery = makeUsersForPostQuery();
-//		}
-//		usersForPostQuery.setArgumentHolderValue(0, post);
-//		return userDao.query(usersForPostQuery);
-//	}
+	private List<WifiScan> lookupWifiScanForPoint(WifiPoint point) {
+		if (wifiScanForPointQuery == null) {
+			wifiScanForPointQuery = makeWifiScanForPointQuery();
+		}
+		try {
+			wifiScanForPointQuery.setArgumentHolderValue(0, point);
+			return mDatabaseHelper.getDaoForModelClass(WifiScan.class).query(wifiScanForPointQuery);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	private List<WifiPoint> lookupInstancesOfWifiPointWithSSID(String ssid, String bssid) {
+		if (wifiPointInstancesQuery == null) {
+			wifiPointInstancesQuery = makeWifiPointInstancesQuery();
+		}
+		try {
+			wifiPointInstancesQuery.setArgumentHolderValue(0, ssid);
+			wifiPointInstancesQuery.setArgumentHolderValue(1, bssid);
+			return mDatabaseHelper.getDaoForModelClass(WifiPoint.class).query(wifiPointInstancesQuery);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 
 	/**
 	 * Build our query for all wifi scan objects
 	 */
-	private PreparedQuery<WifiScan> makeGetAllScansQuery() throws SQLException {
-		// build our inner query for UserPost objects
+	@SuppressWarnings("unchecked")
+	private PreparedQuery<WifiScan> makeGetAllScansQuery() {
 		QueryBuilder<WifiScan, Long> queryBuilder = (QueryBuilder<WifiScan, Long>) mDatabaseHelper.getDaoForModelClass(WifiScan.class).queryBuilder();
-		return queryBuilder.prepare();
+		try {
+			return queryBuilder.prepare();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 	
 	/**
 	 * Build our query for all wifi points that were detected by a scan
 	 */
-	private PreparedQuery<WifiPoint> makeWifiDataForScanQuery() throws SQLException {
-		// build our inner query for UserPost objects
+	@SuppressWarnings("unchecked")
+	private PreparedQuery<WifiPoint> makeWifiPointForScanQuery() {
 		QueryBuilder<WifiScanPointData, Long> queryBuilder = (QueryBuilder<WifiScanPointData, Long>) mDatabaseHelper.getDaoForModelClass(WifiScanPointData.class).queryBuilder();
 		queryBuilder.selectColumns(WifiScanPointData.DATA_SCAN_ID_FIELD_NAME);
 		SelectArg userSelectArg = new SelectArg();
-		queryBuilder.where().eq(WifiScanPointData.WIFI_SCAN_POINT_ID_FIELD_NAME, userSelectArg);
+		try {
+			queryBuilder.where().eq(WifiScanPointData.WIFI_SCAN_POINT_ID_FIELD_NAME, userSelectArg);
+			QueryBuilder<WifiPoint, Long> wifiDataQb = (QueryBuilder<WifiPoint, Long>) mDatabaseHelper.getDaoForModelClass(WifiPoint.class).queryBuilder();
+			wifiDataQb.where().in(WifiPoint.ID_FIELD_NAME, queryBuilder);
+			return wifiDataQb.prepare();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
 
+	}
+	
+	/**
+	 * Build our query for all scans detected a point
+	 */
+	@SuppressWarnings("unchecked")
+	private PreparedQuery<WifiScan> makeWifiScanForPointQuery() {
+		QueryBuilder<WifiScanPointData, Long> queryBuilder = (QueryBuilder<WifiScanPointData, Long>) mDatabaseHelper.getDaoForModelClass(WifiScanPointData.class).queryBuilder();
+		queryBuilder.selectColumns(WifiScanPointData.WIFI_SCAN_POINT_ID_FIELD_NAME);
+		SelectArg userSelectArg = new SelectArg();
+		try {
+			queryBuilder.where().eq(WifiScanPointData.DATA_SCAN_ID_FIELD_NAME, userSelectArg);
+			QueryBuilder<WifiScan, Long> wifiDataQb = (QueryBuilder<WifiScan, Long>) mDatabaseHelper.getDaoForModelClass(WifiScan.class).queryBuilder();
+			wifiDataQb.where().in(WifiPoint.ID_FIELD_NAME, queryBuilder);
+			return wifiDataQb.prepare();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+
+	}
+	
+	/**
+	 * Build our query for all points that match
+	 */
+	@SuppressWarnings("unchecked")
+	private PreparedQuery<WifiPoint> makeWifiPointInstancesQuery() {
+		SelectArg ssidSelectArg = new SelectArg();
+		SelectArg bssidSelectArg = new SelectArg();
 		QueryBuilder<WifiPoint, Long> wifiDataQb = (QueryBuilder<WifiPoint, Long>) mDatabaseHelper.getDaoForModelClass(WifiPoint.class).queryBuilder();
 		// where the id matches in the post-id from the inner query
-		wifiDataQb.where().in(WifiPoint.ID_FIELD_NAME, queryBuilder);
-		return wifiDataQb.prepare();
+		try {
+			wifiDataQb.where().eq(WifiPoint.SSID_FIELD_NAME, ssidSelectArg)
+						.and().eq(WifiPoint.BSSID_FIELD_NAME, bssidSelectArg);
+			return wifiDataQb.prepare();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
-
-//	/**
-//	 * Build our query for User objects that match a Post
-//	 */
-//	private PreparedQuery<User> makeUsersForPostQuery() throws SQLException {
-//		QueryBuilder<UserPost, Integer> userPostQb = userPostDao.queryBuilder();
-//		// this time selecting for the user-id field
-//		userPostQb.selectColumns(UserPost.USER_ID_FIELD_NAME);
-//		SelectArg postSelectArg = new SelectArg();
-//		userPostQb.where().eq(UserPost.POST_ID_FIELD_NAME, postSelectArg);
-//
-//		// build our outer query
-//		QueryBuilder<User, Integer> userQb = userDao.queryBuilder();
-//		// where the user-id matches the inner query's user-id field
-//		userQb.where().in(Post.ID_FIELD_NAME, userPostQb);
-//		return userQb.prepare();
-//	}
 	
 }

@@ -9,6 +9,8 @@ import com.j256.ormlite.table.DatabaseTable;
 public class WifiPoint extends BaseModel<Long> {
 	@SuppressWarnings("unused")
 	private static final String TAG = "WifiData";
+	public final static String SSID_FIELD_NAME = "ssid";
+	public final static String BSSID_FIELD_NAME = "bssid";
 	
 	@DatabaseField(canBeNull = false)
 	private String ssid;
