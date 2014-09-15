@@ -35,9 +35,7 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 		mScanListener = new ArrayList<ScanListener>();
 		
-		
 		mDataManager = new DataManager(this);
-		
 
 		mDatabaseHelper = OpenHelperManager.getHelper(this, DatabaseHelper.class);
 		mDatabaseHelper.getWritableDatabase();

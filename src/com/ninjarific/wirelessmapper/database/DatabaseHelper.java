@@ -40,16 +40,6 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper  {
 				Log.i(TAG, "Exception while creating table", e);
 			}
 		}
-
-//		// here we try inserting data in the on-create as a test
-//		RuntimeExceptionDao<WifiData, Integer> dao = getWifiDataDao();
-//		long millis = System.currentTimeMillis();
-//		// create some entries in the onCreate
-//		WifiData simple = new WifiData(millis);
-//		dao.create(simple);
-//		simple = new WifiData(millis + 1);
-//		dao.create(simple);
-//		Log.i(DatabaseHelper.class.getName(), "created new entries in onCreate: " + millis);
 	}
 
 	/**
@@ -60,8 +50,9 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper  {
 	public void onUpgrade(SQLiteDatabase db, ConnectionSource connectionSource, int oldVersion, int newVersion) {
 		try {
 			Log.i(DatabaseHelper.class.getName(), "onUpgrade");
-			TableUtils.dropTable(connectionSource, WifiPoint.class, true);
-			TableUtils.dropTable(connectionSource, WifiScan.class, true);
+			for (Class<?> modelClass : DatabaseCatalogue.modelClasses) {
+				TableUtils.dropTable(connectionSource, modelClass, true);
+			}
 			// after we drop the old databases, we create the new ones
 			onCreate(db, connectionSource);
 		} catch (SQLException e) {
@@ -70,7 +61,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper  {
 		}
 	}
 	
-/* Fetch */
+	/* Fetch */
 	
 	public <ID, T extends BaseModel<ID>> T fetchObject(Class<T> objectClass, ID id) {
 		RuntimeExceptionDao<T, ID> dao = getRuntimeExceptionDaoForModelClass(objectClass);
@@ -114,7 +105,6 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper  {
 	public <ID, T extends BaseModel<ID>> Dao<T, ?> getDaoForModelClass(Class <T> c) {
 		try {
 			Dao<T, ?> dao = getDao(c);
-			Log.i(TAG, "dao type " + dao.getClass().getSimpleName());
 			return dao;
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block

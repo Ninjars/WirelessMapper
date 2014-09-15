@@ -37,7 +37,7 @@ public class DataManager {
 	
 	public DataManager(MainActivity activity) {
 		mMainActivity = activity;
-		// TODO: setup database
+
 		mDatabaseHelper = new DatabaseHelper(activity);
 		
 		// Wifi linkup
@@ -93,6 +93,7 @@ public class DataManager {
 			WifiScanPointData data = new WifiScanPointData(scan, point);
 			mDatabaseHelper.insert(data);
 		}
+		
     	mMainActivity.onScanResult(scan);
 	}
 	
