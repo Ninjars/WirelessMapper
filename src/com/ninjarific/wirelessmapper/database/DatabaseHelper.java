@@ -14,8 +14,6 @@ import com.j256.ormlite.stmt.PreparedQuery;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 import com.ninjarific.wirelessmapper.database.orm.models.BaseModel;
-import com.ninjarific.wirelessmapper.database.orm.models.WifiPoint;
-import com.ninjarific.wirelessmapper.database.orm.models.WifiScan;
 
 
 public class DatabaseHelper extends OrmLiteSqliteOpenHelper  {
