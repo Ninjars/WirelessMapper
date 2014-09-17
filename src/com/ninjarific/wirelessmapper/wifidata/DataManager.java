@@ -117,14 +117,18 @@ public class DataManager {
 			} else if (matchingPoints.size() > 1) {
 				if (DEBUG) Log.e(TAG, "\t multiple instances of point " + result.SSID + "found!  uh oh...");
 				point = matchingPoints.get(0);
+				List<WifiScan> scansForPoint = getScansForPoint(point);
+				if (DEBUG) Log.d(TAG, "\t " + scansForPoint.size() + " scans found for point");
+				connectedScans.addAll(scansForPoint); // sets don't hold duplicates
 			
 			} else {
 				if (DEBUG) Log.d(TAG, "\t match found, using existing point");
+				if (DEBUG) Log.d(TAG, "\t checking scan result " + matchingPoints.get(0).getSsid());
 				point = matchingPoints.get(0);
+				List<WifiScan> scansForPoint = getScansForPoint(point);
+				if (DEBUG) Log.d(TAG, "\t " + scansForPoint.size() + " scans found for point");
+				connectedScans.addAll(scansForPoint); // sets don't hold duplicates
 			}
-			List<WifiScan> scansForPoint = getScansForPoint(point);
-			if (DEBUG) Log.d(TAG, "\t " + scansForPoint.size() + " scans found for point");
-			connectedScans.addAll(scansForPoint); // sets don't hold duplicates
 			
 //			WifiPoint point = new WifiPoint(result);
 //			
