@@ -2,9 +2,9 @@ package com.ninjarific.wirelessmapper.wifidata;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -94,7 +94,8 @@ public class DataManager {
 	private WifiScan checkForScanMerge(List<ScanResult> scanResults) {
 		if (DEBUG) Log.i(TAG, "checkForScanMerge()");
 		ArrayList<WifiPoint> newPoints = new ArrayList<WifiPoint>();
-		Set<WifiScan> connectedScans = new TreeSet<WifiScan>();
+		ArrayList<WifiScanPointData> connectionData = new ArrayList<WifiScanPointData>();
+		Set<WifiScan> connectedScans = new HashSet<WifiScan>();
 		WifiScan scan = new WifiScan();
 		
 		for (ScanResult result : scanResults) {
