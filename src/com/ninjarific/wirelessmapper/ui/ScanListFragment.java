@@ -1,6 +1,5 @@
 package com.ninjarific.wirelessmapper.ui;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import android.app.Activity;
@@ -20,15 +19,16 @@ import android.widget.ListView;
 import com.ninjarific.wirelessmapper.Constants;
 import com.ninjarific.wirelessmapper.MainActivity;
 import com.ninjarific.wirelessmapper.R;
+import com.ninjarific.wirelessmapper.database.orm.models.WifiPoint;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiScan;
 import com.ninjarific.wirelessmapper.listeners.ScanListener;
 import com.ninjarific.wirelessmapper.wifidata.DataManager;
 
 public class ScanListFragment extends Fragment implements OnClickListener, ScanListener, OnItemClickListener {
-	private static final String TAG = "ScanResultsManagerFragment";
+	private static final String TAG = "ScanListFragment";
 	private static final boolean DEBUG = Constants.DEBUG;
 
-	private Activity mActivity;
+	private MainActivity mActivity;
 	private ArrayAdapter<WifiScan> mListAdapter;
 	private ListView mListView;
 	
@@ -40,22 +40,22 @@ public class ScanListFragment extends Fragment implements OnClickListener, ScanL
 	
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
-		mActivity = activity;
+		mActivity = (MainActivity) activity;
 	}
 	
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle bundle) {
 		super.onCreateView(inflater, container, bundle);
 	    View view = inflater.inflate(R.layout.scan_list_fragment, container, false);
 	    mListView = (ListView) view.findViewById(R.id.list);
-	    mDataManager = ((MainActivity) mActivity).getDataManager();
-	    mWifiScans = new ArrayList<WifiScan>();
+	    mDataManager = mActivity.getDataManager();
+		mWifiScans = mDataManager.getAllWifiScanObjects();
 	    
 		mScanButton = (Button) view.findViewById(R.id.buttonScan);
 		mScanButton.setOnClickListener(this);
 		mClearButton = (Button) view.findViewById(R.id.buttonClear);
 		mClearButton.setOnClickListener(this);
 		
-		mListAdapter = new ArrayAdapter<WifiScan>(mActivity.getApplicationContext(), R.layout.row, mWifiScans);
+		mListAdapter = new ArrayAdapter<WifiScan>(mActivity, R.layout.row, mWifiScans);
 		
 		mListView.setAdapter(this.mListAdapter);
 		mListView.setOnItemClickListener(this);
@@ -99,7 +99,10 @@ public class ScanListFragment extends Fragment implements OnClickListener, ScanL
 	@Override
 	public void onItemClick(AdapterView<?> parentView, View view, int position, long id) {
 		WifiScan item = mListAdapter.getItem(position);
-		
+		List<WifiPoint> points = mDataManager.getPointsForScan(item);
+		PointsListFragment frag = new PointsListFragment();
+		frag.setInfo(points);
+		mActivity.setContentFragment(frag, true);
 	}
 
 }
