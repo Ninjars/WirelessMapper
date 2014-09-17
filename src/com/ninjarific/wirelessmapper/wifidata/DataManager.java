@@ -1,7 +1,10 @@
 package com.ninjarific.wirelessmapper.wifidata;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -30,8 +33,6 @@ public class DataManager {
 	// database
 	private DatabaseHelper mDatabaseHelper;
 	private BroadcastReceiver mBroadCastReceiver;
-
-	private List<WifiPoint> mWifiDataList;
 
 	private WifiManager mWifiManager;
 	
@@ -85,25 +86,78 @@ public class DataManager {
 
 	private void onScanResults(List<ScanResult> scanResults) {
 		if (DEBUG) Log.i(TAG, "onScanResults() count " + scanResults.size());
-		WifiScan scan = new WifiScan();
-		mDatabaseHelper.insert(scan);
-		for (ScanResult result : scanResults) {
-			WifiPoint point = new WifiPoint(result);
-			mDatabaseHelper.insert(point);
-			WifiScanPointData data = new WifiScanPointData(scan, point);
-			mDatabaseHelper.insert(data);
-		}
+		WifiScan scan = checkForScanMerge(scanResults);
 		
     	mMainActivity.onScanResult(scan);
 	}
 	
-	public List<WifiScan> getAllWifiScanObjects() {
-		try {
-			return getAllScans();
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return null;
+	private WifiScan checkForScanMerge(List<ScanResult> scanResults) {
+		if (DEBUG) Log.i(TAG, "checkForScanMerge()");
+		ArrayList<WifiPoint> newPoints = new ArrayList<WifiPoint>();
+		Set<WifiScan> connectedScans = new TreeSet<WifiScan>();
+		WifiScan scan = new WifiScan();
+		
+		for (ScanResult result : scanResults) {
+			if (-result.level < Constants.SCAN_CONNECTION_THREASHOLD) {
+				if (DEBUG) Log.d(TAG, "\t ignoring scan result " + result.SSID + ": level below threashold (" + -result.level + ")");
+				continue;
+			}
+			if (DEBUG) Log.d(TAG, "\t checking scan result " + result.SSID);
+			
+			List<WifiPoint> matchingPoints = lookupInstancesOfWifiPoint(result.SSID, result.BSSID);
+			WifiPoint point = null;
+			if (matchingPoints.size() == 0) {
+				if (DEBUG) Log.d(TAG, "\t no matches found, creating new point");
+				// create new point to be added to database and connected either with this 
+				// scan or a scan that is found to overlap this one
+				point = new WifiPoint(result);
+				newPoints.add(point);
+				
+			} else if (matchingPoints.size() > 1) {
+				if (DEBUG) Log.e(TAG, "\t multiple instances of point " + result.SSID + "found!  uh oh...");
+				point = matchingPoints.get(0);
+			
+			} else {
+				if (DEBUG) Log.d(TAG, "\t match found, using existing point");
+				point = matchingPoints.get(0);
+			}
+			List<WifiScan> scansForPoint = getScansForPoint(point);
+			if (DEBUG) Log.d(TAG, "\t " + scansForPoint.size() + " scans found for point");
+			connectedScans.addAll(scansForPoint); // sets don't hold duplicates
+			
+//			WifiPoint point = new WifiPoint(result);
+//			
+//			if (DEBUG) Log.i(TAG, "\t result level: " + point.getLevel());
+//			// TODO: find a suitable amount of variance for these values to have a fuzzy match
+//			int minMatch = point.getLevel() - 5;
+//			int maxMatch = point.getLevel() + 5;
+//			List<WifiPoint> matchingPoints = lookupInstancesOfWifiPoint(result.SSID, result.BSSID);
+//			if (DEBUG) Log.i(TAG, "\t number of matching points: " + matchingPoints.size());
+//			
+//			for (WifiPoint mp : matchingPoints) {
+//				if (DEBUG) Log.i(TAG, "\t comparison level: " + mp.getLevel());
+//				if (mp.getLevel() > minMatch && mp.getLevel() < maxMatch) {
+//					if (DEBUG) Log.i(TAG, "\t levels match within tolerance");
+//					// TODO: instead of creating a new wifipoint, we could just add this scan to the matching point(s)
+//					// TODO: check for scans that completely overlap with this one; if another hold fewer values then
+//					// 		 replace with this scan in all occurrences then delete.  If another completely matches and
+//					//		 holds more values then no action is needed - this scan is redundant.
+//					List<WifiScan> scansMatchingPoint = lookupWifiScanForPoint(mp);
+//					if (DEBUG) Log.i(TAG, "\t number of matching scans: " + scansMatchingPoint.size());
+//					scans.addAll(scansMatchingPoint);
+//				}
+//			}
 		}
+		
+		// connectedScans now holds all the scans that detected any of the points found by the last scan
+		
+		
+		return scan;
+		
+	}
+	
+	public List<WifiScan> getAllWifiScanObjects() {
+		return getAllScans();
 	}
 	
 	/*
@@ -147,11 +201,16 @@ public class DataManager {
 	private PreparedQuery<WifiScan> wifiScanForPointQuery = null;
 	private PreparedQuery<WifiPoint> wifiPointInstancesQuery = null;
 	
-	private List<WifiScan> getAllScans() throws SQLException {
+	private List<WifiScan> getAllScans() {
 		if (getAllScansQuery == null) {
 			getAllScansQuery = makeGetAllScansQuery();
 		}
-		return mDatabaseHelper.getDaoForModelClass(WifiScan.class).query(getAllScansQuery);
+		try {
+			return mDatabaseHelper.getDaoForModelClass(WifiScan.class).query(getAllScansQuery);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 	
 	private List<WifiPoint> lookupWifiPointForScan(WifiScan scan) {
@@ -180,7 +239,7 @@ public class DataManager {
 		}
 	}
 
-	private List<WifiPoint> lookupInstancesOfWifiPointWithSSID(String ssid, String bssid) {
+	private List<WifiPoint> lookupInstancesOfWifiPoint(String ssid, String bssid) {
 		if (wifiPointInstancesQuery == null) {
 			wifiPointInstancesQuery = makeWifiPointInstancesQuery();
 		}

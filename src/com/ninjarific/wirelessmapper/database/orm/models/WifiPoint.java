@@ -7,8 +7,6 @@ import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable(tableName = "WifiData")
 public class WifiPoint extends BaseModel<Long> {
-	@SuppressWarnings("unused")
-	private static final String TAG = "WifiData";
 	public final static String SSID_FIELD_NAME = "ssid";
 	public final static String BSSID_FIELD_NAME = "bssid";
 	
@@ -16,18 +14,12 @@ public class WifiPoint extends BaseModel<Long> {
 	private String ssid;
 	@DatabaseField(canBeNull = false)
 	private String bssid;
-	@DatabaseField(canBeNull = false)
-	private int level;
-	@DatabaseField(canBeNull = false)
-	private int freq;
 	
 	protected WifiPoint() {/* for ORMLite use */}
 	
 	public WifiPoint(ScanResult result) {
 		bssid = result.BSSID;
 		ssid = result.SSID;
-		level = result.level;
-		freq = result.frequency;
 	}
 
 	@Override
@@ -46,16 +38,13 @@ public class WifiPoint extends BaseModel<Long> {
 	public void setBssid(String bssid) {
 		this.bssid = bssid;
 	}
-	public int getLevel() {
-		return level;
+
+	@Override
+	public boolean equals(Object o) {
+		return (o instanceof WifiPoint 
+				&& this.getSsid().equals(((WifiPoint) o).getSsid())
+				&& this.getBssid().equals(((WifiPoint) o).getBssid()));
 	}
-	public void setLevel(int level) {
-		this.level = level;
-	}
-	public int getFreq() {
-		return freq;
-	}
-	public void setFreq(int freq) {
-		this.freq = freq;
-	}
+	
+	
 }
