@@ -56,7 +56,15 @@ public class DataManager {
         		DataManager.this.onScanResults(mWifiManager.getScanResults());
             }
         };
-        mMainActivity.registerReceiver(mBroadCastReceiver,  new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+        mMainActivity.registerReceiver(mBroadCastReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+	}
+
+	public void onStop() {
+		mMainActivity.unregisterReceiver(mBroadCastReceiver);	
+	}
+
+	public void onResume() {
+		mMainActivity.registerReceiver(mBroadCastReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));	
 	}
 	
 	private void enableWifi() {
@@ -215,10 +223,6 @@ public class DataManager {
 		}
 		return data;
 	}
-
-	public void onStop() {
-		mMainActivity.unregisterReceiver(mBroadCastReceiver);	
-	}
 	
 	/*
 	 * Convenience methods to build and run our prepared queries.
@@ -290,6 +294,7 @@ public class DataManager {
 		try {
 			return queryBuilder.prepare();
 		} catch (SQLException e) {
+			Log.e(TAG, "failed to build makeGetAllScansQuery");
 			e.printStackTrace();
 			return null;
 		}
@@ -301,14 +306,15 @@ public class DataManager {
 	@SuppressWarnings("unchecked")
 	private PreparedQuery<WifiPoint> makeWifiPointForScanQuery() {
 		QueryBuilder<WifiScanPointData, Long> queryBuilder = (QueryBuilder<WifiScanPointData, Long>) mDatabaseHelper.getDaoForModelClass(WifiScanPointData.class).queryBuilder();
-		queryBuilder.selectColumns(WifiScanPointData.DATA_SCAN_ID_FIELD_NAME);
+		queryBuilder.selectColumns(WifiScanPointData.WIFI_SCAN_ID_FIELD_NAME);
 		SelectArg userSelectArg = new SelectArg();
 		try {
-			queryBuilder.where().eq(WifiScanPointData.WIFI_SCAN_POINT_ID_FIELD_NAME, userSelectArg);
+			queryBuilder.where().eq(WifiScanPointData.WIFI_POINT_ID_FIELD_NAME, userSelectArg);
 			QueryBuilder<WifiPoint, Long> wifiDataQb = (QueryBuilder<WifiPoint, Long>) mDatabaseHelper.getDaoForModelClass(WifiPoint.class).queryBuilder();
 			wifiDataQb.where().in(WifiPoint.ID_FIELD_NAME, queryBuilder);
 			return wifiDataQb.prepare();
 		} catch (SQLException e) {
+			Log.e(TAG, "failed to build makeWifiPointForScanQuery");
 			e.printStackTrace();
 			return null;
 		}
@@ -321,14 +327,15 @@ public class DataManager {
 	@SuppressWarnings("unchecked")
 	private PreparedQuery<WifiScan> makeWifiScanForPointQuery() {
 		QueryBuilder<WifiScanPointData, Long> queryBuilder = (QueryBuilder<WifiScanPointData, Long>) mDatabaseHelper.getDaoForModelClass(WifiScanPointData.class).queryBuilder();
-		queryBuilder.selectColumns(WifiScanPointData.WIFI_SCAN_POINT_ID_FIELD_NAME);
+		queryBuilder.selectColumns(WifiScanPointData.WIFI_POINT_ID_FIELD_NAME);
 		SelectArg userSelectArg = new SelectArg();
 		try {
-			queryBuilder.where().eq(WifiScanPointData.DATA_SCAN_ID_FIELD_NAME, userSelectArg);
+			queryBuilder.where().eq(WifiScanPointData.WIFI_SCAN_ID_FIELD_NAME, userSelectArg);
 			QueryBuilder<WifiScan, Long> wifiDataQb = (QueryBuilder<WifiScan, Long>) mDatabaseHelper.getDaoForModelClass(WifiScan.class).queryBuilder();
-			wifiDataQb.where().in(WifiPoint.ID_FIELD_NAME, queryBuilder);
+			wifiDataQb.where().in(WifiScan.ID_FIELD_NAME, queryBuilder);
 			return wifiDataQb.prepare();
 		} catch (SQLException e) {
+			Log.e(TAG, "failed to build makeWifiScanForPointQuery");
 			e.printStackTrace();
 			return null;
 		}
@@ -349,6 +356,7 @@ public class DataManager {
 						.and().eq(WifiPoint.BSSID_FIELD_NAME, bssidSelectArg);
 			return wifiDataQb.prepare();
 		} catch (SQLException e) {
+			Log.e(TAG, "failed to build makeWifiPointInstancesQuery");
 			e.printStackTrace();
 			return null;
 		}

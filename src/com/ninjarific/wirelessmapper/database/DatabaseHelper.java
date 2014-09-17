@@ -105,7 +105,6 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper  {
 			Dao<T, ?> dao = getDao(c);
 			return dao;
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return null;
 		}

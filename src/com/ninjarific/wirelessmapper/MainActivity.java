@@ -18,7 +18,7 @@ import com.ninjarific.wirelessmapper.ui.DebugDataFragment;
 import com.ninjarific.wirelessmapper.wifidata.DataManager;
 
 public class MainActivity extends Activity {
-	private static final String TAG = "WifiTester";
+	private static final String TAG = "MainActivity";
 	private static final boolean DEBUG = true && Constants.DEBUG;
 	
 	private Toast mToast;
@@ -68,6 +68,7 @@ public class MainActivity extends Activity {
 	
 	@Override
 	protected void onResume() {
+		mDataManager.onResume();
 		super.onResume();
 	}
 	
@@ -91,9 +92,9 @@ public class MainActivity extends Activity {
 	}
 
 	public void onScanResult(WifiScan point) {
-		if (DEBUG) Log.i(TAG, "onScanResults()");
+		if (DEBUG) Log.i(TAG, "onScanResult()");
 		for (ScanListener l : mScanListener) {
-			if (DEBUG) Log.i(TAG, "onScanResults() --> ScanListener");
+			if (DEBUG) Log.i(TAG, "onScanResult() --> ScanListener");
 			l.onScanResult(point);
 		}
     	mToast.cancel();		
@@ -101,7 +102,7 @@ public class MainActivity extends Activity {
 
 	public void onDataSetChanged() {
 		for (ScanListener l : mScanListener) {
-			if (DEBUG) Log.i(TAG, "onScanResults() --> ScanListener");
+			if (DEBUG) Log.i(TAG, "onDataSetChanged() --> ScanListener");
 			l.onDataChanged();
 		}
 	}    
