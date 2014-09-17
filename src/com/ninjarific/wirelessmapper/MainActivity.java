@@ -45,7 +45,7 @@ public class MainActivity extends Activity {
         mToast.cancel();
 
         DebugDataFragment frag = new DebugDataFragment();
-		setContentFragment(frag); // create main fragment and assign here
+		setContentFragment(frag, false); // create main fragment and assign here
 		mScanListener.add(frag);
         
     }
@@ -85,9 +85,15 @@ public class MainActivity extends Activity {
 		mToast.show();
     }
 	
-	private void setContentFragment(Fragment fragment) {
+	public void setContentFragment(Fragment fragment, boolean addToBackStack) {
 		FragmentTransaction ft =  getFragmentManager().beginTransaction();
-		ft.replace(R.id.content, fragment);
+
+		if (addToBackStack) {
+			ft.add(fragment, null);
+			ft.addToBackStack(null);
+		} else {
+			ft.replace(R.id.content, fragment);
+		}
 		ft.commit();
 	}
 
