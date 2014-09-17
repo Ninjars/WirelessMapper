@@ -2,6 +2,7 @@ package com.ninjarific.wirelessmapper.database;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -72,6 +73,26 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper  {
 		RuntimeExceptionDao<BaseModel<ID>, ID> dao = getRuntimeExceptionDaoForObject(object);
 		dao.create(object);
 		dao.refresh(object);
+	}
+	
+	/*
+	 * Pass in a list of objects of the same type to batch their insertion into the database.
+	 */
+	public <ID, T extends BaseModel<ID>> void batchInsert(final List<? extends BaseModel<ID>> objectsToInsert) {
+		if (objectsToInsert == null || !(objectsToInsert.size() > 0)) {
+			return;
+		}
+		final RuntimeExceptionDao<BaseModel<ID>, ID> dao = getRuntimeExceptionDaoForObject(objectsToInsert.get(0));
+		dao.callBatchTasks(new Callable<Void>() {
+			@Override
+			public Void call() throws Exception {
+				for (BaseModel<ID> object : objectsToInsert) {
+					dao.create(object);
+					dao.refresh(object);
+				}
+				return null;
+			}
+		});
 	}
 	
 	public <ID, T extends BaseModel<ID>> void update(BaseModel<ID> object) {
