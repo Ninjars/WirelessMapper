@@ -130,6 +130,11 @@ public class DataManager {
 				connectedScans.addAll(scansForPoint); // sets don't hold duplicates
 			}
 			
+			// TODO: compare matching scans to check the amount they overlap by; very similar scans aren't useful,
+			// 		 but with sufficient differences they can be used to begin triangulating points.
+			
+			connectionData.add(new WifiScanPointData(scan, point, result.level));
+			
 //			WifiPoint point = new WifiPoint(result);
 //			
 //			if (DEBUG) Log.i(TAG, "\t result level: " + point.getLevel());
@@ -156,11 +161,29 @@ public class DataManager {
 		
 		// connectedScans now holds all the scans that detected any of the points found by the last scan
 		
+		// TODO: this is just placeholder whilst the merge algo is resolved
+		addPointsForScan(scan, newPoints, connectionData);
 		
 		return scan;
 		
 	}
 	
+	private void addPointsForScan(WifiScan scan, List<WifiPoint> points, ArrayList<WifiScanPointData> connectionData) {
+		if (DEBUG) Log.d(TAG, "addPointsForScan() count " + points.size());
+		if (connectionData == null) {
+			connectionData = new ArrayList<WifiScanPointData>();
+		}
+		for (WifiPoint point : points) {
+			if (point.getLevel() != 0) {
+				if (DEBUG) Log.d(TAG, "\t creating connection for point " + point.getSsid());
+				connectionData.add(new WifiScanPointData(scan, point, point.getLevel()));
+			}
+		}
+		mDatabaseHelper.insert(scan);
+		mDatabaseHelper.batchInsert(points);
+		mDatabaseHelper.batchInsert(connectionData);
+	}
+
 	public List<WifiScan> getAllWifiScanObjects() {
 		return getAllScans();
 	}
