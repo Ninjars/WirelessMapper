@@ -89,7 +89,7 @@ public class MainActivity extends Activity {
 		FragmentTransaction ft =  getFragmentManager().beginTransaction();
 
 		if (addToBackStack) {
-			ft.add(fragment, null);
+			ft.replace(R.id.content, fragment);
 			ft.addToBackStack(null);
 		} else {
 			ft.replace(R.id.content, fragment);
