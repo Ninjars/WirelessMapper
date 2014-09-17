@@ -14,7 +14,7 @@ import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.ninjarific.wirelessmapper.database.DatabaseHelper;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiScan;
 import com.ninjarific.wirelessmapper.listeners.ScanListener;
-import com.ninjarific.wirelessmapper.ui.DebugDataFragment;
+import com.ninjarific.wirelessmapper.ui.ScanListFragment;
 import com.ninjarific.wirelessmapper.wifidata.DataManager;
 
 public class MainActivity extends Activity {
@@ -44,7 +44,7 @@ public class MainActivity extends Activity {
         mToast = Toast.makeText(getApplicationContext(), "", Toast.LENGTH_SHORT);
         mToast.cancel();
 
-        DebugDataFragment frag = new DebugDataFragment();
+        ScanListFragment frag = new ScanListFragment();
 		setContentFragment(frag, false); // create main fragment and assign here
 		mScanListener.add(frag);
         
