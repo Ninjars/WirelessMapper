@@ -45,7 +45,7 @@ public class ScanListFragment extends Fragment implements OnClickListener, ScanL
 	
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle bundle) {
 		super.onCreateView(inflater, container, bundle);
-	    View view = inflater.inflate(R.layout.scan_results_fragment, container, false);
+	    View view = inflater.inflate(R.layout.scan_list_fragment, container, false);
 	    mListView = (ListView) view.findViewById(R.id.list);
 	    mDataManager = ((MainActivity) mActivity).getDataManager();
 	    mWifiScans = new ArrayList<WifiScan>();
