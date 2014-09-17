@@ -7,4 +7,8 @@ public class WifiScan extends BaseModel<Long> {
 	
 	public WifiScan() {/* for ORMLite use */};
 
+	@Override
+	public String toString() {
+		return "<WifiScan " + this.getId() + ">";
+	}
 }
