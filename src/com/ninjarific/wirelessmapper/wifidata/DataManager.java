@@ -308,7 +308,6 @@ public class DataManager {
 			connectionsForScanQuery.setArgumentHolderValue(0, scan);
 			return mDatabaseHelper.getDaoForModelClass(WifiScanPointData.class).query(connectionsForScanQuery);
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return null;
 		}
@@ -319,7 +318,10 @@ public class DataManager {
 	 */
 	@SuppressWarnings("unchecked")
 	private PreparedQuery<WifiScan> makeGetAllScansQuery() {
-		QueryBuilder<WifiScan, Long> queryBuilder = (QueryBuilder<WifiScan, Long>) mDatabaseHelper.getDaoForModelClass(WifiScan.class).queryBuilder();
+		QueryBuilder<WifiScan, Long> queryBuilder = 
+				(QueryBuilder<WifiScan, Long>) mDatabaseHelper
+				.getDaoForModelClass(WifiScan.class)
+				.queryBuilder();
 		try {
 			return queryBuilder.prepare();
 		} catch (SQLException e) {
@@ -334,12 +336,18 @@ public class DataManager {
 	 */
 	@SuppressWarnings("unchecked")
 	private PreparedQuery<WifiPoint> makeWifiPointForScanQuery() {
-		QueryBuilder<WifiScanPointData, Long> queryBuilder = (QueryBuilder<WifiScanPointData, Long>) mDatabaseHelper.getDaoForModelClass(WifiScanPointData.class).queryBuilder();
+		QueryBuilder<WifiScanPointData, Long> queryBuilder = 
+				(QueryBuilder<WifiScanPointData, Long>) mDatabaseHelper
+				.getDaoForModelClass(WifiScanPointData.class)
+				.queryBuilder();
 		queryBuilder.selectColumns(WifiScanPointData.WIFI_SCAN_ID_FIELD_NAME);
 		SelectArg userSelectArg = new SelectArg();
 		try {
 			queryBuilder.where().eq(WifiScanPointData.WIFI_POINT_ID_FIELD_NAME, userSelectArg);
-			QueryBuilder<WifiPoint, Long> wifiDataQb = (QueryBuilder<WifiPoint, Long>) mDatabaseHelper.getDaoForModelClass(WifiPoint.class).queryBuilder();
+			QueryBuilder<WifiPoint, Long> wifiDataQb = 
+					(QueryBuilder<WifiPoint, Long>) mDatabaseHelper
+					.getDaoForModelClass(WifiPoint.class)
+					.queryBuilder();
 			wifiDataQb.where().in(WifiPoint.ID_FIELD_NAME, queryBuilder);
 			return wifiDataQb.prepare();
 		} catch (SQLException e) {
@@ -355,12 +363,18 @@ public class DataManager {
 	 */
 	@SuppressWarnings("unchecked")
 	private PreparedQuery<WifiScan> makeWifiScanForPointQuery() {
-		QueryBuilder<WifiScanPointData, Long> queryBuilder = (QueryBuilder<WifiScanPointData, Long>) mDatabaseHelper.getDaoForModelClass(WifiScanPointData.class).queryBuilder();
+		QueryBuilder<WifiScanPointData, Long> queryBuilder = 
+				(QueryBuilder<WifiScanPointData, Long>) mDatabaseHelper
+				.getDaoForModelClass(WifiScanPointData.class)
+				.queryBuilder();
 		queryBuilder.selectColumns(WifiScanPointData.WIFI_POINT_ID_FIELD_NAME);
 		SelectArg userSelectArg = new SelectArg();
 		try {
 			queryBuilder.where().eq(WifiScanPointData.WIFI_SCAN_ID_FIELD_NAME, userSelectArg);
-			QueryBuilder<WifiScan, Long> wifiDataQb = (QueryBuilder<WifiScan, Long>) mDatabaseHelper.getDaoForModelClass(WifiScan.class).queryBuilder();
+			QueryBuilder<WifiScan, Long> wifiDataQb = 
+					(QueryBuilder<WifiScan, Long>) mDatabaseHelper
+					.getDaoForModelClass(WifiScan.class)
+					.queryBuilder();
 			wifiDataQb.where().in(WifiScan.ID_FIELD_NAME, queryBuilder);
 			return wifiDataQb.prepare();
 		} catch (SQLException e) {
@@ -378,7 +392,10 @@ public class DataManager {
 	private PreparedQuery<WifiPoint> makeWifiPointInstancesQuery() {
 		SelectArg ssidSelectArg = new SelectArg();
 		SelectArg bssidSelectArg = new SelectArg();
-		QueryBuilder<WifiPoint, Long> wifiDataQb = (QueryBuilder<WifiPoint, Long>) mDatabaseHelper.getDaoForModelClass(WifiPoint.class).queryBuilder();
+		QueryBuilder<WifiPoint, Long> wifiDataQb = 
+				(QueryBuilder<WifiPoint, Long>) mDatabaseHelper
+				.getDaoForModelClass(WifiPoint.class)
+				.queryBuilder();
 		// where the id matches in the post-id from the inner query
 		try {
 			wifiDataQb.where().eq(WifiPoint.SSID_FIELD_NAME, ssidSelectArg)
@@ -396,8 +413,10 @@ public class DataManager {
 	 */
 	@SuppressWarnings("unchecked")
 	private PreparedQuery<WifiScanPointData> makeConnectionsForScanQuery() {
-		QueryBuilder<WifiScanPointData, Long> queryBuilder = (QueryBuilder<WifiScanPointData, Long>) mDatabaseHelper.getDaoForModelClass(WifiScanPointData.class).queryBuilder();
-		queryBuilder.selectColumns(WifiScanPointData.WIFI_SCAN_ID_FIELD_NAME);
+		QueryBuilder<WifiScanPointData, Long> queryBuilder = 
+				(QueryBuilder<WifiScanPointData, Long>) mDatabaseHelper
+				.getDaoForModelClass(WifiScanPointData.class)
+				.queryBuilder();
 		SelectArg userSelectArg = new SelectArg();
 		try {
 			queryBuilder.where().eq(WifiScanPointData.WIFI_SCAN_ID_FIELD_NAME, userSelectArg);
