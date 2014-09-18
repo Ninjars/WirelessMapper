@@ -239,6 +239,20 @@ public class DataManager {
 	}
 	
 	/*
+	 * returns all the connections related to a point
+	 */
+	public List<WifiScanPointData> getConnectionsForPoint(WifiPoint point) {
+		if (DEBUG) Log.i(TAG, "getConnectionsForPoint()");
+		List<WifiScanPointData> data = lookupConnectionsForPoint(point);
+		if (DEBUG) if (data != null) {
+			Log.i(TAG, "\t data size: " + data.size());
+		} else {
+			Log.i(TAG, "\t data is null");
+		}
+		return data;
+	}
+	
+	/*
 	 * Convenience methods to build and run our prepared queries.
 	 */
 
@@ -247,6 +261,7 @@ public class DataManager {
 	private PreparedQuery<WifiScan> wifiScanForPointQuery = null;
 	private PreparedQuery<WifiPoint> wifiPointInstancesQuery = null;
 	private PreparedQuery<WifiScanPointData> connectionsForScanQuery = null;
+	private PreparedQuery<WifiScanPointData> connectionsForPointQuery = null;
 	
 	private List<WifiScan> getAllScans() {
 		if (getAllScansQuery == null) {
@@ -306,6 +321,19 @@ public class DataManager {
 		}
 		try {
 			connectionsForScanQuery.setArgumentHolderValue(0, scan);
+			return mDatabaseHelper.getDaoForModelClass(WifiScanPointData.class).query(connectionsForScanQuery);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	private List<WifiScanPointData> lookupConnectionsForPoint(WifiPoint point) {
+		if (connectionsForPointQuery == null) {
+			connectionsForPointQuery = makeConnectionsForPointQuery();
+		}
+		try {
+			connectionsForPointQuery.setArgumentHolderValue(0, point);
 			return mDatabaseHelper.getDaoForModelClass(WifiScanPointData.class).query(connectionsForScanQuery);
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -420,6 +448,27 @@ public class DataManager {
 		SelectArg userSelectArg = new SelectArg();
 		try {
 			queryBuilder.where().eq(WifiScanPointData.WIFI_SCAN_ID_FIELD_NAME, userSelectArg);
+			return queryBuilder.prepare();
+		} catch (SQLException e) {
+			Log.e(TAG, "failed to build makeConnectionsForScanQuery");
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	/**
+	 * Build our query for all connections that exist for a point
+	 */
+	@SuppressWarnings("unchecked")
+	private PreparedQuery<WifiScanPointData> makeConnectionsForPointQuery() {
+		QueryBuilder<WifiScanPointData, Long> queryBuilder = 
+				(QueryBuilder<WifiScanPointData, Long>) mDatabaseHelper
+				.getDaoForModelClass(WifiScanPointData.class)
+				.queryBuilder();
+
+		SelectArg userSelectArg = new SelectArg();
+		try {
+			queryBuilder.where().eq(WifiScanPointData.WIFI_POINT_ID_FIELD_NAME, userSelectArg);
 			return queryBuilder.prepare();
 		} catch (SQLException e) {
 			Log.e(TAG, "failed to build makeConnectionsForScanQuery");
