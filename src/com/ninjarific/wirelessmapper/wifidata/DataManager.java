@@ -103,8 +103,8 @@ public class DataManager {
 		if (DEBUG) Log.i(TAG, "checkForScanMerge()");
 		ArrayList<WifiPoint> newPoints = new ArrayList<WifiPoint>();
 		ArrayList<WifiScanPointData> connectionData = new ArrayList<WifiScanPointData>();
-		Set<WifiScan> connectedScans = new HashSet<WifiScan>();
-		WifiScan scan = new WifiScan();
+		Set<WifiPoint> existingPoints = new HashSet<WifiPoint>();
+		WifiScan scan = null;
 		
 		for (ScanResult result : scanResults) {
 			if (-result.level < Constants.SCAN_CONNECTION_THREASHOLD) {
@@ -122,65 +122,103 @@ public class DataManager {
 				point = new WifiPoint(result);
 				newPoints.add(point);
 				
-			} else if (matchingPoints.size() > 1) {
-				if (DEBUG) Log.e(TAG, "\t multiple instances of point " + result.SSID + "found!  uh oh...");
-				point = matchingPoints.get(0);
-				List<WifiScan> scansForPoint = getScansForPoint(point);
-				if (DEBUG) Log.d(TAG, "\t " + scansForPoint.size() + " scans found for point");
-				connectedScans.addAll(scansForPoint); // sets don't hold duplicates
-			
 			} else {
 				if (DEBUG) Log.d(TAG, "\t match found, using existing point");
 				if (DEBUG) Log.d(TAG, "\t checking scan result " + matchingPoints.get(0).getSsid());
 				point = matchingPoints.get(0);
-				List<WifiScan> scansForPoint = getScansForPoint(point);
+				point.setLevel(result.level);
+				List<WifiScanPointData> scansForPoint = getConnectionsForPoint(point);
 				if (DEBUG) Log.d(TAG, "\t " + scansForPoint.size() + " scans found for point");
-				connectedScans.addAll(scansForPoint); // sets don't hold duplicates
+				existingPoints.add(point);
 			}
-			
-			// TODO: compare matching scans to check the amount they overlap by; very similar scans aren't useful,
-			// 		 but with sufficient differences they can be used to begin triangulating points.
-			
-			connectionData.add(new WifiScanPointData(scan, point, result.level));
-			
-//			WifiPoint point = new WifiPoint(result);
-//			
-//			if (DEBUG) Log.i(TAG, "\t result level: " + point.getLevel());
-//			// TODO: find a suitable amount of variance for these values to have a fuzzy match
-//			int minMatch = point.getLevel() - 5;
-//			int maxMatch = point.getLevel() + 5;
-//			List<WifiPoint> matchingPoints = lookupInstancesOfWifiPoint(result.SSID, result.BSSID);
-//			if (DEBUG) Log.i(TAG, "\t number of matching points: " + matchingPoints.size());
-//			
-//			for (WifiPoint mp : matchingPoints) {
-//				if (DEBUG) Log.i(TAG, "\t comparison level: " + mp.getLevel());
-//				if (mp.getLevel() > minMatch && mp.getLevel() < maxMatch) {
-//					if (DEBUG) Log.i(TAG, "\t levels match within tolerance");
-//					// TODO: instead of creating a new wifipoint, we could just add this scan to the matching point(s)
-//					// TODO: check for scans that completely overlap with this one; if another hold fewer values then
-//					// 		 replace with this scan in all occurrences then delete.  If another completely matches and
-//					//		 holds more values then no action is needed - this scan is redundant.
-//					List<WifiScan> scansMatchingPoint = lookupWifiScanForPoint(mp);
-//					if (DEBUG) Log.i(TAG, "\t number of matching scans: " + scansMatchingPoint.size());
-//					scans.addAll(scansMatchingPoint);
-//				}
-//			}
 		}
-		
-		// connectedScans now holds all the scans that detected any of the points found by the last scan
-		
-		// TODO: this is just placeholder whilst the merge algo is resolved
-		addPointsForScan(scan, newPoints, connectionData);
+
+		if (existingPoints.size() == 0) {
+			// no existing points found, so this scan is all new and no comparison needs to be run
+			if (DEBUG) Log.d(TAG, "\t no existing point matches found; creating new scan");
+			scan = new WifiScan();
+			addPointsForScan(scan, newPoints);
+			
+		} else {
+			scan = getWifiScanMatchFromPoints(new ArrayList<WifiPoint>(existingPoints));
+			if (scan == null) {
+				// no matching scan was found! This means the new scan is 
+				// sufficiently different to warrant a new set of connections!
+				if (DEBUG) Log.d(TAG, "\t no overlap found; creating new scan for all points");
+				scan = new WifiScan();
+				ArrayList<WifiPoint> points = new ArrayList<WifiPoint>(existingPoints);
+				points.addAll(newPoints);
+				addPointsForScan(scan, points);
+			
+			} else {
+				// matching scan found!  Existing points' connections are 
+				// sufficient, just add the new points to the matching scan
+				if (DEBUG) Log.d(TAG, "\t matching scan found; adding new point connections to found scan");
+				addPointsForScan(scan, newPoints);
+			}
+		}
 		
 		return scan;
 		
 	}
 	
-	private void addPointsForScan(WifiScan scan, List<WifiPoint> points, ArrayList<WifiScanPointData> connectionData) {
-		if (DEBUG) Log.d(TAG, "addPointsForScan() count " + points.size());
-		if (connectionData == null) {
-			connectionData = new ArrayList<WifiScanPointData>();
+	/**
+	 * returns the first scan found that matches the points
+	 * @param points
+	 * @return
+	 */
+	private WifiScan getWifiScanMatchFromPoints(List<WifiPoint> points) {
+		if (DEBUG) Log.d(TAG, "getWifiScanMatchFromPoints()");
+		List<List<WifiScan>> matchingData = new ArrayList<List<WifiScan>>();
+		Set<WifiScan> foundScans = new HashSet<WifiScan>();
+		// assemble scans for each point that match the signal strength found by this scan's connections
+		for (WifiPoint point : points) {
+			if (point.getLevel() < Constants.SCAN_CONNECTION_THREASHOLD) {
+				Log.e(TAG, "getWifiScanMatchFromPoints() passed point with level beneath threashold at " + point.getLevel());
+				continue;
+			}
+			List<WifiScanPointData> connections = lookupConnectionsForPoint(point);
+			if (DEBUG) Log.d(TAG, "\t found " + connections.size() + " connections for point " + point.getSsid());
+			int min = point.getLevel() - Constants.POINT_LEVEL_SIGNIFICANT_VARIATION;
+			int max = point.getLevel() + Constants.POINT_LEVEL_SIGNIFICANT_VARIATION;
+			List<WifiScan> matchingScans = new ArrayList<WifiScan>();
+			for (WifiScanPointData connection : connections) {
+				if (connection.getLevel() > min && connection.getLevel() < max) {
+					WifiScan foundScan = connection.getScan();
+					if (foundScan != null) {
+						if (DEBUG) Log.d(TAG, "\t found matching scan " + foundScan.getId());
+						matchingScans.add(foundScan);
+						foundScans.add(foundScan);
+					} else {
+						if (DEBUG) Log.w(TAG, "\t connection.getScan() returned null :(");
+					}
+				}
+			}
+			
+			matchingData.add(matchingScans);
 		}
+		
+		// see if there is a common scan found in all points' connections
+		for (WifiScan scan : foundScans) {
+			boolean match = true;
+			for (List<WifiScan> scans : matchingData) {
+				if (!scans.contains(scan)) {
+					match = false;
+					break;
+				}
+			}
+			
+			if (match == true) {
+				return scan;
+			}
+		}
+		
+		return null;
+	}
+
+	private void addPointsForScan(WifiScan scan, List<WifiPoint> points) {
+		if (DEBUG) Log.d(TAG, "addPointsForScan() count " + points.size());
+		ArrayList<WifiScanPointData> connectionData = new ArrayList<WifiScanPointData>();
 		for (WifiPoint point : points) {
 			if (point.getLevel() != 0) {
 				if (DEBUG) Log.d(TAG, "\t creating connection for point " + point.getSsid());

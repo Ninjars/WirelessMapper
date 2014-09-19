@@ -15,11 +15,14 @@ public class WifiPoint extends BaseModel<Long> {
 	@DatabaseField(canBeNull = false)
 	private String bssid;
 	
+	private int level; // not stored - only used
+	
 	protected WifiPoint() {/* for ORMLite use */}
 	
 	public WifiPoint(ScanResult result) {
 		bssid = result.BSSID;
 		ssid = result.SSID;
+		level = result.level;
 	}
 
 	@Override
@@ -39,12 +42,19 @@ public class WifiPoint extends BaseModel<Long> {
 		this.bssid = bssid;
 	}
 
+	public int getLevel() {
+		return level;
+	}
+
+	public void setLevel(int level) {
+		this.level = level;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		return (o instanceof WifiPoint 
 				&& this.getSsid().equals(((WifiPoint) o).getSsid())
 				&& this.getBssid().equals(((WifiPoint) o).getBssid()));
 	}
-	
 	
 }
