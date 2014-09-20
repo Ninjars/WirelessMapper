@@ -56,5 +56,14 @@ public class WifiPoint extends BaseModel<Long> {
 				&& this.getSsid().equals(((WifiPoint) o).getSsid())
 				&& this.getBssid().equals(((WifiPoint) o).getBssid()));
 	}
-	
+
+	@Override
+	public int hashCode() {
+        int hash = 17;
+        hash += this.getClass().hashCode();
+        hash += (this.getId() != null ? this.getId().hashCode() : 0);
+        hash += (this.getSsid() != null ? this.getSsid().hashCode() : 0);
+        hash += (this.getBssid() != null ? this.getBssid().hashCode() : 0);
+        return hash;
+	}
 }
