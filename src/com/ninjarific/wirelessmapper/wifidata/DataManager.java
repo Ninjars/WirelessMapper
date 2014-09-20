@@ -372,7 +372,9 @@ public class DataManager {
 		}
 		try {
 			connectionsForPointQuery.setArgumentHolderValue(0, point);
-			return mDatabaseHelper.getDaoForModelClass(WifiScanPointData.class).query(connectionsForScanQuery);
+			return mDatabaseHelper
+					.getDaoForModelClass(WifiScanPointData.class)
+					.query(connectionsForPointQuery);
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return null;
@@ -406,10 +408,10 @@ public class DataManager {
 				(QueryBuilder<WifiScanPointData, Long>) mDatabaseHelper
 				.getDaoForModelClass(WifiScanPointData.class)
 				.queryBuilder();
-		queryBuilder.selectColumns(WifiScanPointData.WIFI_SCAN_ID_FIELD_NAME);
+		queryBuilder.selectColumns(WifiScanPointData.WIFI_POINT_ID_FIELD_NAME);
 		SelectArg userSelectArg = new SelectArg();
 		try {
-			queryBuilder.where().eq(WifiScanPointData.WIFI_POINT_ID_FIELD_NAME, userSelectArg);
+			queryBuilder.where().eq(WifiScanPointData.WIFI_SCAN_ID_FIELD_NAME, userSelectArg);
 			QueryBuilder<WifiPoint, Long> wifiDataQb = 
 					(QueryBuilder<WifiPoint, Long>) mDatabaseHelper
 					.getDaoForModelClass(WifiPoint.class)
@@ -433,10 +435,10 @@ public class DataManager {
 				(QueryBuilder<WifiScanPointData, Long>) mDatabaseHelper
 				.getDaoForModelClass(WifiScanPointData.class)
 				.queryBuilder();
-		queryBuilder.selectColumns(WifiScanPointData.WIFI_POINT_ID_FIELD_NAME);
+		queryBuilder.selectColumns(WifiScanPointData.WIFI_SCAN_ID_FIELD_NAME);
 		SelectArg userSelectArg = new SelectArg();
 		try {
-			queryBuilder.where().eq(WifiScanPointData.WIFI_SCAN_ID_FIELD_NAME, userSelectArg);
+			queryBuilder.where().eq(WifiScanPointData.WIFI_POINT_ID_FIELD_NAME, userSelectArg);
 			QueryBuilder<WifiScan, Long> wifiDataQb = 
 					(QueryBuilder<WifiScan, Long>) mDatabaseHelper
 					.getDaoForModelClass(WifiScan.class)
@@ -462,7 +464,6 @@ public class DataManager {
 				(QueryBuilder<WifiPoint, Long>) mDatabaseHelper
 				.getDaoForModelClass(WifiPoint.class)
 				.queryBuilder();
-		// where the id matches in the post-id from the inner query
 		try {
 			wifiDataQb.where().eq(WifiPoint.SSID_FIELD_NAME, ssidSelectArg)
 						.and().eq(WifiPoint.BSSID_FIELD_NAME, bssidSelectArg);
