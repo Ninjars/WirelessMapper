@@ -3,7 +3,7 @@ package com.ninjarific.wirelessmapper.database.orm.models;
 import com.j256.ormlite.field.DatabaseField;
 import com.ninjarific.wirelessmapper.Constants;
 
-public class WifiScanPointData extends BaseModel<Long> {
+public class WifiConnectionData extends BaseModel<Long> {
 	public final static String WIFI_POINT_ID_FIELD_NAME = "point_id";
 	public final static String WIFI_SCAN_ID_FIELD_NAME = "scan_id";
 	public final static String LEVEL_ID_FIELD_NAME = "level_id";
@@ -18,9 +18,9 @@ public class WifiScanPointData extends BaseModel<Long> {
 	@DatabaseField(columnName = LEVEL_ID_FIELD_NAME, canBeNull = false)
 	private int mLevel;
 	
-	public WifiScanPointData() {/* for ORMLite use */}
+	public WifiConnectionData() {/* for ORMLite use */}
 	
-	public WifiScanPointData(WifiScan scan, WifiPoint point, int signalLevel) {
+	public WifiConnectionData(WifiScan scan, WifiPoint point, int signalLevel) {
 		mScan = scan;
 		mPoint = point;
 		mLevel = signalLevel;
@@ -45,10 +45,10 @@ public class WifiScanPointData extends BaseModel<Long> {
 
 	@Override
 	public boolean equals(Object o) {
-		return (o instanceof WifiScanPointData 
-				&& this.getScan().equals(((WifiScanPointData) o).getScan())
-				&& this.getPoint().equals(((WifiScanPointData) o).getPoint())
-				&& this.getLevel() == (((WifiScanPointData) o).getLevel()));
+		return (o instanceof WifiConnectionData 
+				&& this.getScan().equals(((WifiConnectionData) o).getScan())
+				&& this.getPoint().equals(((WifiConnectionData) o).getPoint())
+				&& this.getLevel() == (((WifiConnectionData) o).getLevel()));
 	}
 
 	@Override
@@ -65,7 +65,7 @@ public class WifiScanPointData extends BaseModel<Long> {
 	/*
 	 * fuzzy equality to merge similar level connections to be treated as the same
 	 */
-	public boolean approximateConnectionMatch(WifiScanPointData data) {
+	public boolean approximateConnectionMatch(WifiConnectionData data) {
 		return (this.getScan().equals(data.getScan())
 				&& this.getPoint().equals(data.getPoint())
 				&& this.getLevel() - Constants.POINT_LEVEL_SIGNIFICANT_VARIATION < data.getLevel()
