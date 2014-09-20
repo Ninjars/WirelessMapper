@@ -1,6 +1,7 @@
 package com.ninjarific.wirelessmapper.database.orm.models;
 
 import com.j256.ormlite.field.DatabaseField;
+import com.ninjarific.wirelessmapper.Constants;
 
 public class WifiScanPointData extends BaseModel<Long> {
 	public final static String WIFI_POINT_ID_FIELD_NAME = "point_id";
@@ -60,4 +61,16 @@ public class WifiScanPointData extends BaseModel<Long> {
         hash += this.getLevel();
         return hash;
 	}
+	
+	/*
+	 * fuzzy equality to merge similar level connections to be treated as the same
+	 */
+	public boolean approximateConnectionMatch(WifiScanPointData data) {
+		return (this.getScan().equals(data.getScan())
+				&& this.getPoint().equals(data.getPoint())
+				&& this.getLevel() - Constants.POINT_LEVEL_SIGNIFICANT_VARIATION < data.getLevel()
+				&& this.getLevel() + Constants.POINT_LEVEL_SIGNIFICANT_VARIATION > data.getLevel()
+				);
+	}
+	
 }
