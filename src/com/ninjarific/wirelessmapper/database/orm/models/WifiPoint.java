@@ -22,12 +22,12 @@ public class WifiPoint extends BaseModel<Long> {
 	public WifiPoint(ScanResult result) {
 		bssid = result.BSSID;
 		ssid = result.SSID;
-		level = result.level;
+		level = Math.abs(result.level);
 	}
 
 	@Override
 	public String toString() {
-		return getSsid() + " " + getBssid();
+		return getId() + " " + getSsid() + " " + getBssid();
 	}
 	public String getSsid() {
 		return ssid;
@@ -47,7 +47,7 @@ public class WifiPoint extends BaseModel<Long> {
 	}
 
 	public void setLevel(int level) {
-		this.level = level;
+		this.level = Math.abs(level);
 	}
 
 	@Override
