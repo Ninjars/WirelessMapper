@@ -36,4 +36,23 @@ public class WifiScanPointData extends BaseModel<Long> {
 	public WifiPoint getPoint() {
 		return mPoint;
 	}
+
+	@Override
+	public boolean equals(Object o) {
+		return (o instanceof WifiScanPointData 
+				&& this.getScan().equals(((WifiScanPointData) o).getScan())
+				&& this.getPoint().equals(((WifiScanPointData) o).getPoint())
+				&& this.getLevel() == (((WifiScanPointData) o).getLevel()));
+	}
+
+	@Override
+	public int hashCode() {
+        int hash = 17;
+        hash += this.getClass().hashCode();
+        hash += (this.getId() != null ? this.getId().hashCode() : 0);
+        hash += (this.getScan() != null ? this.getScan().hashCode() : 0);
+        hash += (this.getPoint() != null ? this.getPoint().hashCode() : 0);
+        hash += this.getLevel();
+        return hash;
+	}
 }
