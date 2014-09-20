@@ -7,11 +7,11 @@ public class WifiScanPointData extends BaseModel<Long> {
 	public final static String WIFI_SCAN_ID_FIELD_NAME = "scan_id";
 	public final static String LEVEL_ID_FIELD_NAME = "level_id";
 	// This is a foreign object which just stores the id from the User object in this table.
-	@DatabaseField(foreign = true, columnName = WIFI_POINT_ID_FIELD_NAME, canBeNull = false)
+	@DatabaseField(foreign = true, foreignAutoRefresh=true, columnName = WIFI_SCAN_ID_FIELD_NAME, canBeNull = false)
 	WifiScan mScan;
 
 	// This is a foreign object which just stores the id from the Post object in this table.
-	@DatabaseField(foreign = true, columnName = WIFI_SCAN_ID_FIELD_NAME, canBeNull = false)
+	@DatabaseField(foreign = true, foreignAutoRefresh=true, columnName = WIFI_POINT_ID_FIELD_NAME, canBeNull = false)
 	WifiPoint mPoint;
 	
 	@DatabaseField(columnName = LEVEL_ID_FIELD_NAME, canBeNull = false)
