@@ -58,7 +58,6 @@ public class MainActivity extends Activity {
 	protected void onStart() {
 		if (DEBUG) Log.i(TAG, "onStart()");
 		super.onStart();
-		mDataManager.startScan();
 	}
 	
 	@Override
