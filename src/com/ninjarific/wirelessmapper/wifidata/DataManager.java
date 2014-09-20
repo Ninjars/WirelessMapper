@@ -13,6 +13,7 @@ import android.content.IntentFilter;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.util.Log;
+import android.util.LongSparseArray;
 
 import com.j256.ormlite.stmt.PreparedQuery;
 import com.j256.ormlite.stmt.QueryBuilder;
@@ -20,9 +21,9 @@ import com.j256.ormlite.stmt.SelectArg;
 import com.ninjarific.wirelessmapper.Constants;
 import com.ninjarific.wirelessmapper.MainActivity;
 import com.ninjarific.wirelessmapper.database.DatabaseHelper;
+import com.ninjarific.wirelessmapper.database.orm.models.WifiConnectionData;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiPoint;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiScan;
-import com.ninjarific.wirelessmapper.database.orm.models.WifiConnectionData;
 
 public class DataManager {
 	private static final String TAG = "DataManager";
@@ -561,6 +562,16 @@ public class DataManager {
 			e.printStackTrace();
 			return null;
 		}
+	}
+
+	public static LongSparseArray<Integer> getProcessedConnectionsForConnectionData(List<WifiConnectionData> connections) {
+		if (DEBUG) Log.d(TAG, "getProcessedConnectionsForConnectionData()");
+		LongSparseArray<Integer> data = new LongSparseArray<Integer>();
+		for (WifiConnectionData connection : connections) {
+			data.put(connection.getId(), connection.getLevel());
+		}
+		if (DEBUG) Log.d(TAG, "\t return data: " + data);
+		return data;
 	}
 	
 }

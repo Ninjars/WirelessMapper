@@ -99,9 +99,13 @@ public class ScanListFragment extends RootFragment implements OnClickListener, S
 		WifiScan item = mListAdapter.getItem(position);
 		if (DEBUG) Log.i(TAG, "onItemClick() " + item.toString());
 		
-		List<WifiPoint> points = mDataManager.getPointsForScan(item);
-		PointsListFragment frag = new PointsListFragment();
-		frag.setInfo(points);
+//		List<WifiPoint> points = mDataManager.getPointsForScan(item);
+//		PointsListFragment frag = new PointsListFragment();
+//		frag.setInfo(points);
+		
+		ScanDisplayFragment frag = new ScanDisplayFragment();
+		frag.setScanForDisplay(item);
+
 		mActivity.setContentFragment(frag, true);
 	}
 
