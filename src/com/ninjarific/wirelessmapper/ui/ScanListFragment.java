@@ -3,7 +3,6 @@ package com.ninjarific.wirelessmapper.ui;
 import java.util.List;
 
 import android.app.Activity;
-import android.app.Fragment;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -19,12 +18,11 @@ import android.widget.ListView;
 import com.ninjarific.wirelessmapper.Constants;
 import com.ninjarific.wirelessmapper.MainActivity;
 import com.ninjarific.wirelessmapper.R;
-import com.ninjarific.wirelessmapper.database.orm.models.WifiPoint;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiScan;
 import com.ninjarific.wirelessmapper.listeners.ScanListener;
 import com.ninjarific.wirelessmapper.wifidata.DataManager;
 
-public class ScanListFragment extends Fragment implements OnClickListener, ScanListener, OnItemClickListener {
+public class ScanListFragment extends RootFragment implements OnClickListener, ScanListener, OnItemClickListener {
 	private static final String TAG = "ScanListFragment";
 	private static final boolean DEBUG = Constants.DEBUG;
 
@@ -45,7 +43,7 @@ public class ScanListFragment extends Fragment implements OnClickListener, ScanL
 	
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle bundle) {
 		super.onCreateView(inflater, container, bundle);
-	    View view = inflater.inflate(R.layout.scan_list_fragment, container, false);
+	    View view = inflater.inflate(R.layout.fragment_scan_list, container, false);
 	    mListView = (ListView) view.findViewById(R.id.list);
 	    mDataManager = mActivity.getDataManager();
 		mWifiScans = mDataManager.getAllWifiScanObjects();
