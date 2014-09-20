@@ -36,6 +36,11 @@ public class WifiScanPointData extends BaseModel<Long> {
 	public WifiPoint getPoint() {
 		return mPoint;
 	}
+	
+	@Override
+	public String toString() {
+		return "<Connection " + getId() + ": scan " + mScan.getId() + " to point " + mPoint.getId() + " " + mPoint.getSsid() + " @ " + mLevel + ">";
+	}
 
 	@Override
 	public boolean equals(Object o) {
