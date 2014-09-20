@@ -99,6 +99,8 @@ public class ScanListFragment extends Fragment implements OnClickListener, ScanL
 	@Override
 	public void onItemClick(AdapterView<?> parentView, View view, int position, long id) {
 		WifiScan item = mListAdapter.getItem(position);
+		if (DEBUG) Log.i(TAG, "onItemClick() " + item.toString());
+		
 		List<WifiPoint> points = mDataManager.getPointsForScan(item);
 		PointsListFragment frag = new PointsListFragment();
 		frag.setInfo(points);
