@@ -18,11 +18,12 @@ import com.ninjarific.wirelessmapper.wifidata.DataManager;
 public class MainEngineThread extends Thread {
 	private static final String TAG = "MainEngineThread";
 	private static final boolean DEBUG = true;
+	private static final boolean DEBUG_FPS = false;
 	
 	static final long FPS = 30;
 	private GraphicsView mGraphicsView;
 	private boolean mIsRunning = false;
-	private long mTick;
+	private long mLastStartTime;
 	
 	private DataManager mDataManager;
 	private HashMap<WifiScan, WifiScanActor> mScanActors;
@@ -46,10 +47,12 @@ public class MainEngineThread extends Thread {
         long ticksPS = 1000 / FPS;
         long startTime;
         long sleepTime;
+        mLastStartTime = getSystemTimestamp();
 		while (mIsRunning) {
 			startTime = getSystemTimestamp();
-			update(startTime - mTick);
-			mTick = startTime;
+			if (DEBUG_FPS) Log.v(TAG, "updateTime: " + (startTime - mLastStartTime));
+			update(startTime - mLastStartTime);
+			mLastStartTime = startTime;
 			Canvas c = null;
 			try {
 				c = mGraphicsView.getHolder().lockCanvas();
