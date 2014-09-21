@@ -12,10 +12,10 @@ import android.view.SurfaceView;
 import com.ninjarific.wirelessmapper.MainActivity;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiScan;
 import com.ninjarific.wirelessmapper.engine.MainEngineThread;
-import com.ninjarific.wirelessmapper.engine.renderer.GroupNode;
-import com.ninjarific.wirelessmapper.engine.renderer.WifiScanGroupNode;
 import com.ninjarific.wirelessmapper.entities.actors.RootActor;
 import com.ninjarific.wirelessmapper.entities.actors.WifiScanActor;
+import com.ninjarific.wirelessmapper.graphics.renderers.GroupNode;
+import com.ninjarific.wirelessmapper.graphics.renderers.WifiScanGroupNode;
 
 public class GraphicsView extends SurfaceView {
 	private static final String TAG = "GraphicsView";

@@ -1,8 +1,8 @@
-package com.ninjarific.wirelessmapper.engine.renderer;
+package com.ninjarific.wirelessmapper.graphics.renderers;
 
 import com.ninjarific.wirelessmapper.Constants;
-import com.ninjarific.wirelessmapper.engine.renderer.BasicTextRenderNode.VerticalAlign;
 import com.ninjarific.wirelessmapper.entities.actors.WifiScanActor;
+import com.ninjarific.wirelessmapper.graphics.renderers.BasicTextRenderNode.VerticalAlign;
 
 public class WifiScanGroupNode extends GroupNode {
 

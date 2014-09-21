@@ -1,4 +1,4 @@
-package com.ninjarific.wirelessmapper.engine.renderer;
+package com.ninjarific.wirelessmapper.graphics.renderers;
 
 import java.util.ArrayList;
 
