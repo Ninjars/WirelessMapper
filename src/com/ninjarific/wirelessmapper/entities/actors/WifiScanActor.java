@@ -23,6 +23,8 @@ public class WifiScanActor extends MoveableActor {
 		mId = scan.getId();
 	}
 	
-	// TODO: create a bitmap for the actor
-	// TODO: add functions to get the bitmap for when the actor is passed to the render node
+	public String getActorLabel() {
+		return mId.toString();
+	}
+	
 }

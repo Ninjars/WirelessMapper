@@ -7,10 +7,11 @@ import android.graphics.PointF;
 
 public class GroupNode extends GraphNode {
 	private ArrayList<GraphNode> mChildNodes;
-	private PointF mTranslation = new PointF(0,0);
+	protected PointF mTranslation;
 	
 	public GroupNode() {
 		mChildNodes = new ArrayList<GraphNode>();
+		mTranslation = new PointF(0,0);
 	}
 	
 	public void setTranslation(PointF translation) {
@@ -51,10 +52,17 @@ public class GroupNode extends GraphNode {
 	}
 	
 	public void draw(Canvas c) {
+		update();
 		c.translate(mTranslation.x, mTranslation.y);
 		
 		for (GraphNode node : mChildNodes) {
 			node.draw(c);
 		}
+	}
+	
+	protected void update() {
+		// any on-frame update logic can go in overrides of this
+		// method, eg getting the translation from an actor in 
+		// an actor rendering group.
 	}
 }

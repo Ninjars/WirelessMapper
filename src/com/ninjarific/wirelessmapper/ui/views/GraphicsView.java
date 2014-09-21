@@ -13,7 +13,7 @@ import com.ninjarific.wirelessmapper.MainActivity;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiScan;
 import com.ninjarific.wirelessmapper.engine.MainEngineThread;
 import com.ninjarific.wirelessmapper.engine.renderer.GroupNode;
-import com.ninjarific.wirelessmapper.engine.renderer.WifiScanRenderNode;
+import com.ninjarific.wirelessmapper.engine.renderer.WifiScanGroupNode;
 import com.ninjarific.wirelessmapper.entities.actors.RootActor;
 import com.ninjarific.wirelessmapper.entities.actors.WifiScanActor;
 
@@ -155,13 +155,11 @@ public class GraphicsView extends SurfaceView {
 			return;
 		}
 		
-		GroupNode actorNode = new GroupNode();
-		
 		if (actor instanceof WifiScanActor) {
-			actorNode.addChild(new WifiScanRenderNode((WifiScanActor) actor));
+			GroupNode actorNode = new WifiScanGroupNode((WifiScanActor) actor);
+			mRenderTree.addChild(actorNode);
 		}
 
-		mRenderTree.addChild(actorNode);
 	}
 	
 	public void addWifiScan(WifiScan scan) {
