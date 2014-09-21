@@ -3,6 +3,7 @@ package com.ninjarific.wirelessmapper.ui.views;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.PointF;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -28,6 +29,7 @@ public class GraphicsView extends SurfaceView {
 
 	private GroupNode mRenderTree;
 	private WifiScan mWifiScanToAdd;
+	private PointF mCenterTranslation;
 
 	public GraphicsView(Context context) {
         super(context);
@@ -66,11 +68,12 @@ public class GraphicsView extends SurfaceView {
 		
 			@Override
 			public void surfaceCreated(SurfaceHolder holder) {
-				GraphicsView.this.onSurfaceCreated();
+				onSurfaceCreated();
 			}
 		
 			@Override
 			public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+				onSurfaceChanged(width, height);
 			}
 			
 		});
@@ -88,11 +91,38 @@ public class GraphicsView extends SurfaceView {
     	}
     }
     
+    protected void onSurfaceChanged(int width, int height) {
+		if (DEBUG) Log.d(TAG, "onSurfaceChanged()");
+		if (mRenderTree != null) {
+			if (DEBUG) Log.d(TAG, "\t updating render tree base translation");
+	        PointF currentTranslation = mRenderTree.getTranslation();
+	        // remove previous center offset
+	        if (mCenterTranslation != null) {
+		        currentTranslation.x -= mCenterTranslation.x;
+		        currentTranslation.y -= mCenterTranslation.y;
+	        }
+
+			if (DEBUG) Log.d(TAG, "\t base translation: " + currentTranslation);
+	        // apply new center offset
+	        mCenterTranslation = new PointF(width / 2f, height / 2f);
+	        currentTranslation.x += mCenterTranslation.x;
+	        currentTranslation.y += mCenterTranslation.y;
+	        mRenderTree.setTranslation(currentTranslation);
+			
+		} else {
+			if (DEBUG) Log.d(TAG, "\t no render tree; just storing the translation");
+			mCenterTranslation = new PointF(width / 2f, height / 2f);
+		}
+    }
+    
     public void startEngine(MainActivity activity) {
 		if (DEBUG) Log.d(TAG, "startEngine()");
     	mMainActivity = activity;
         mEngine = new MainEngineThread(this, activity.getDataManager());
         mRenderTree = new GroupNode();
+        if (mCenterTranslation != null) {
+        	mRenderTree.setTranslation(mCenterTranslation);
+        }
         
         if (mWifiScanToAdd != null) {
         	mEngine.addWifiScan(mWifiScanToAdd);
