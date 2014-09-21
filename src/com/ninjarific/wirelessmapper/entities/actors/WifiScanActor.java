@@ -1,8 +1,10 @@
 package com.ninjarific.wirelessmapper.entities.actors;
 
-import android.util.Log;
-import android.util.LongSparseArray;
+import java.util.List;
 
+import android.util.Log;
+
+import com.ninjarific.wirelessmapper.database.orm.models.WifiConnectionData;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiScan;
 import com.ninjarific.wirelessmapper.entities.descriptors.WifiScanActorDescriptor;
 
@@ -11,7 +13,7 @@ public class WifiScanActor extends MoveableActor {
 	private static final String TAG = "WifiScanActor";
 	private static final boolean DEBUG = true;
 	
-	private LongSparseArray<Integer> mScanConnections;
+	private List<WifiConnectionData> mScanConnections;
 	private String mName;
 	private Long mId;
 

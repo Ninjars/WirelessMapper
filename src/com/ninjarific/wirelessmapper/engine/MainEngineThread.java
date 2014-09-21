@@ -1,6 +1,5 @@
 package com.ninjarific.wirelessmapper.engine;
 
-import java.util.HashMap;
 import java.util.List;
 
 import android.graphics.Canvas;
@@ -9,8 +8,11 @@ import android.util.Log;
 import android.util.LongSparseArray;
 
 import com.ninjarific.wirelessmapper.database.orm.models.WifiConnectionData;
+import com.ninjarific.wirelessmapper.database.orm.models.WifiPoint;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiScan;
+import com.ninjarific.wirelessmapper.entities.actors.WifiPointActor;
 import com.ninjarific.wirelessmapper.entities.actors.WifiScanActor;
+import com.ninjarific.wirelessmapper.entities.descriptors.WifiPointActorDescriptor;
 import com.ninjarific.wirelessmapper.entities.descriptors.WifiScanActorDescriptor;
 import com.ninjarific.wirelessmapper.ui.views.GraphicsView;
 import com.ninjarific.wirelessmapper.wifidata.DataManager;
@@ -26,12 +28,14 @@ public class MainEngineThread extends Thread {
 	private long mLastStartTime;
 	
 	private DataManager mDataManager;
-	private HashMap<WifiScan, WifiScanActor> mScanActors;
+	private LongSparseArray<WifiScanActor> mScanActors;
+	private LongSparseArray<WifiPointActor> mPointActors;
 	
 	public MainEngineThread(GraphicsView view, DataManager datamanager) {
 		mGraphicsView = view;
 		mDataManager = datamanager;
-		mScanActors = new HashMap<WifiScan, WifiScanActor>();
+		mScanActors = new LongSparseArray<WifiScanActor>();
+		mPointActors = new LongSparseArray<WifiPointActor>();
 	}
 	
 	public void setRunning(boolean running) {
@@ -85,20 +89,46 @@ public class MainEngineThread extends Thread {
 	 * 
 	 */
 	private void update(long timeDelta) {
-		// TODO Auto-generated method stub
+		for (int i = 0, size = mScanActors.size(); i < size; i++) {
+			mScanActors.valueAt(i).update(timeDelta);
+		}
+		for (int i = 0, size = mPointActors.size(); i < size; i++) {
+			mPointActors.valueAt(i).update(timeDelta);
+		}
 		
 	}
 	
 	public void addWifiScan(WifiScan scan) {
-		if (!mScanActors.containsKey(scan)) {
+		if (DEBUG) Log.d(TAG, "addWifiScan() " + scan);
+		if (mScanActors.get(scan.getId()) == null) {
 			List<WifiConnectionData> connections = mDataManager.getConnectionsForScan(scan);
-			LongSparseArray<Integer> processedConnections = DataManager.getProcessedConnectionsForConnectionData(connections);
-			WifiScanActorDescriptor desc = new WifiScanActorDescriptor(scan, processedConnections);
+			WifiScanActorDescriptor desc = new WifiScanActorDescriptor(scan, connections);
 			WifiScanActor actor = new WifiScanActor(desc);
-			mScanActors.put(scan, actor);
+			mScanActors.put(scan.getId(), actor);
 			mGraphicsView.createRendererForActor(actor);
+			
+			addWifiPointsFromConnections(connections);
 		}
-		
+	}
+
+	private void addWifiPointsFromConnections(List<WifiConnectionData> connections) {
+		if (DEBUG) Log.d(TAG, "addWifiPointsFromConnections() count " + connections.size());
+		for (WifiConnectionData connection : connections) {
+			WifiPoint point = connection.getPoint();
+			if (mPointActors.get(point.getId()) == null) {
+				List<WifiConnectionData> scanConnections = mDataManager.getConnectionsForPoint(point);
+				WifiPointActorDescriptor desc = new WifiPointActorDescriptor(point, scanConnections);
+				WifiPointActor actor = new WifiPointActor(desc, this);
+				mPointActors.put(point.getId(), actor);
+				mGraphicsView.createRendererForActor(actor);
+			}
+		}
+	}
+
+	public WifiScanActor getScanActorById(long id) {
+		if (DEBUG) Log.d(TAG, "getScanActorById() " + id);
+		if (DEBUG) Log.d(TAG, "\t scanActors: " + mScanActors.toString());
+		return mScanActors.get(id);
 	}
 
 }

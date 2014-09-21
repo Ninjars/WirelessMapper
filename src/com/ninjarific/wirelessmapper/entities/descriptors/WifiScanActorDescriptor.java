@@ -1,29 +1,30 @@
 package com.ninjarific.wirelessmapper.entities.descriptors;
 
-import android.util.LongSparseArray;
+import java.util.List;
 
+import com.ninjarific.wirelessmapper.database.orm.models.WifiConnectionData;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiScan;
 
 public class WifiScanActorDescriptor extends MovableActorDescriptor {
 
 	private WifiScan mScan;
-	private LongSparseArray<Integer> mScanConnections;
+	private List<WifiConnectionData> mScanConnections;
 
 	/*
 	 * basic constructor
 	 * TODO: constructor that includes movable actor information
 	 */
-	public WifiScanActorDescriptor(WifiScan scan, LongSparseArray<Integer> processedConnections) {
+	public WifiScanActorDescriptor(WifiScan scan, List<WifiConnectionData> connections) {
 		super();
 		mScan = scan;
-		mScanConnections = processedConnections;
+		mScanConnections = connections;
 	}
 	
 	public WifiScan getScan() {
 		return mScan;
 	}
 
-	public LongSparseArray<Integer> getScanConnections() {
+	public List<WifiConnectionData> getScanConnections() {
 		return mScanConnections;
 	}
 	

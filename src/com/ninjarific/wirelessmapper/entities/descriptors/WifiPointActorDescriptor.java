@@ -1,15 +1,16 @@
 package com.ninjarific.wirelessmapper.entities.descriptors;
 
-import java.util.HashMap;
+import java.util.List;
 
+import com.ninjarific.wirelessmapper.database.orm.models.WifiConnectionData;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiPoint;
 
 public class WifiPointActorDescriptor extends MovableActorDescriptor {
 
 	private WifiPoint mPoint;
-	private HashMap<Long, Integer> mScanConnections;
+	private List<WifiConnectionData> mScanConnections;
 
-	public WifiPointActorDescriptor(WifiPoint point, HashMap<Long, Integer> scanConnections) {
+	public WifiPointActorDescriptor(WifiPoint point, List<WifiConnectionData> scanConnections) {
 		super();
 		mPoint = point;
 		mScanConnections = scanConnections;
@@ -19,7 +20,7 @@ public class WifiPointActorDescriptor extends MovableActorDescriptor {
 		return mPoint;
 	}
 
-	public HashMap<Long, Integer> getScanConnections() {
+	public List<WifiConnectionData> getScanConnections() {
 		return mScanConnections;
 	}
 	
