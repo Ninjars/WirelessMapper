@@ -5,18 +5,13 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.PointF;
-import android.util.Log;
 
 public class CircleRenderNode extends RenderNode {
-	private static final String TAG = "WifiScanRenderNode";
-	private static final boolean DEBUG = true;
-	
 	private int mColor = Color.WHITE;
-	private float mRadius = 30;
+	private float mRadius = 35;
 	private PointF mOffset = new PointF(0,0);
 
 	public CircleRenderNode() {
-		if (DEBUG) Log.d(TAG, "created");
 		createPaint();
 	}
 	
