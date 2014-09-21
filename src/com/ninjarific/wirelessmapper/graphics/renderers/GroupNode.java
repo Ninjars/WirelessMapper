@@ -53,11 +53,13 @@ public class GroupNode extends GraphNode {
 	
 	public void draw(Canvas c) {
 		update();
+		c.save();
 		c.translate(mTranslation.x, mTranslation.y);
 		
 		for (GraphNode node : mChildNodes) {
 			node.draw(c);
 		}
+		c.restore();
 	}
 	
 	protected void update() {
