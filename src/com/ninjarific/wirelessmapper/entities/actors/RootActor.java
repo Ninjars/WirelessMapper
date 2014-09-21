@@ -1,5 +1,6 @@
 package com.ninjarific.wirelessmapper.entities.actors;
 
-public class RootActor {
+public abstract class RootActor {
+	public abstract void update(long timeDeltaMs);
 
 }
