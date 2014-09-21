@@ -256,14 +256,6 @@ public class DataManager {
 	private void addPointsForScan(WifiScan scan, Set<WifiPoint> existingPoints, List<WifiPoint> newPoints, boolean isNewScan) {
 		if (DEBUG) Log.d(TAG, "addPointsForScan(): " + existingPoints.size() + " existing points, " + newPoints.size() + " new points");
 		ArrayList<WifiConnectionData> connectionData = new ArrayList<WifiConnectionData>();
-		for (WifiPoint point : existingPoints) {
-			if (point.getLevel() != 0) {
-				if (DEBUG) Log.d(TAG, "\t creating connection for point " + point);
-				WifiConnectionData connection = new WifiConnectionData(scan, point, point.getLevel());
-				connectionData.add(connection);
-				if (DEBUG) Log.d(TAG, "\t connection created: \n\t\t" + connection);
-			}
-		}
 		for (WifiPoint point : newPoints) {
 			if (point.getLevel() != 0) {
 				if (DEBUG) Log.d(TAG, "\t creating connection for point " + point);
@@ -272,9 +264,20 @@ public class DataManager {
 				if (DEBUG) Log.d(TAG, "\t connection created: \n\t\t" + connection);
 			}
 		}
+		
 		if (isNewScan) {
+			for (WifiPoint point : existingPoints) {
+				if (point.getLevel() != 0) {
+					if (DEBUG) Log.d(TAG, "\t creating connection for point " + point);
+					WifiConnectionData connection = new WifiConnectionData(scan, point, point.getLevel());
+					connectionData.add(connection);
+					if (DEBUG) Log.d(TAG, "\t connection created: \n\t\t" + connection);
+				}
+			}
+			
 			mDatabaseHelper.insert(scan);
 		}
+		
 		mDatabaseHelper.batchInsert(newPoints);
 		mDatabaseHelper.batchInsert(connectionData);
 	}
@@ -331,9 +334,13 @@ public class DataManager {
 	public List<WifiConnectionData> getConnectionsForPoint(WifiPoint point) {
 		if (DEBUG) Log.i(TAG, "getConnectionsForPoint() " + point);
 		List<WifiConnectionData> data = lookupConnectionsForPoint(point);
-		if (DEBUG) if (data != null) {
-		} else {
-			Log.w(TAG, "\t hit error - data is null!");
+		if (DEBUG) {
+			if (data != null) {
+				Log.i(TAG, "\t data: " + data.toString());
+				
+			} else {
+				Log.w(TAG, "\t hit error - data is null!");
+			}
 		}
 		return data;
 	}
