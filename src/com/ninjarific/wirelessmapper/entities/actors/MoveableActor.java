@@ -15,12 +15,8 @@ public class MoveableActor extends RootActor {
 	private static final double cInactiveDistanceCutoff = 0.001;
 	
 	private final double cOrbitalVelocity = 0.3 + (0.3 * Math.random());
-
-	private static final float cMaxSpeedSquared = 10 * 10; // max velocity per second is constant, but square roots are expensive
 	
-	private float mRateOfAcceleration = 5; // units per second
 	private PointF mPosition;
-	private PointF mTargetPosition;
 	private PointF mLastPosition;
 	private PointF mVelocity;
 	private boolean mIsActive;
@@ -28,11 +24,27 @@ public class MoveableActor extends RootActor {
 	protected Mode mMode = Mode.STANDARD;
 	protected long mOrbitStartTime;
 	private int mOrbitRadius;
+	private PointF mForce;
 	
 	enum Mode {
 		ORBIT,
 		STANDARD,
 	}
+	
+	/*
+	 * what is needed:
+	 * List of connections broken down to allow quick access to actor's position and desired distance from said position.
+	 * The further from the optimum position, the stronger the force that pushes back, 
+	 * with a max deviation of maybe double the desired distance.
+	 * - comparison of current distance to desired distance
+	 * - direction of force for restoration
+	 * - sum with all other forces for all connections for point
+	 * - apply resulting force as acceleration to current velocity
+	 * - apply friction constant to velocity
+	 * 
+	 * Perhaps, as the connection goes both ways, the forces per connection should be calculated at a higher level
+	 * and passed down to the point and scan actors to be resolved by the actors into their individual accelerations
+	 */
 
 	public MoveableActor(MovableActorDescriptor desc) {
 		mPosition = desc.getPosition();
@@ -58,17 +70,6 @@ public class MoveableActor extends RootActor {
 		mPosition = newPos;
 	}
 
-	public PointF getTargetPosition() {
-		return mTargetPosition;
-	}
-	
-	public void setTargetPosition(PointF position) {
-		mIsActive = true;
-		mTargetPosition = position;
-		// TODO: to keep the acceleration problem simple, reset velocity on change of target.
-		mVelocity = new PointF();
-	}
-
 	public PointF getVelocity() {
 		return mVelocity;
 	}
@@ -76,6 +77,16 @@ public class MoveableActor extends RootActor {
 	public void setVelocity(PointF velocity) {
 		mIsActive = true;
 		mVelocity = velocity;
+	}
+	
+	public void onNewForceCalculation() {
+		mForce.x = 0;
+		mForce.y = 0;
+	}
+	
+	public void addForce(float x, float y) {
+		mForce.x += x;
+		mForce.y += y;
 	}
 	
 	protected void setMode(Mode mode) {
@@ -107,35 +118,12 @@ public class MoveableActor extends RootActor {
 	private void updateVelocity(long deltaT) {
 		switch (mMode) {
 			case STANDARD: {
-				if (mTargetPosition != null) {
-					// TODO: currently this algo doesn't take into account the direction of current 
-					// acceleration when calculating the point to accelerate towards
-					double remainingDistance = getSquareDistanceBetweenPoints(mTargetPosition, mPosition);
-					double decelerationDistance = getCurrentDecelerationDistanceSquared();
-					
-					if (remainingDistance > decelerationDistance) {
-						accelerateToPoint(deltaT, mRateOfAcceleration, mTargetPosition);
-					} else {
-						accelerateToPoint(deltaT, -mRateOfAcceleration, mTargetPosition);
-					}
-				}
 				break;
 			}
 			case ORBIT: {
 				break;
 			}
 		}
-	}
-	
-	private void accelerateToPoint(long deltaT, double acceleration, PointF point) {
-		PointF targetVector = new PointF(point.x - mPosition.x, point.y - mPosition.y);
-		PointF currentVector = mVelocity;
-		float dVx = targetVector.x - currentVector.x;
-		float dVy = targetVector.y - currentVector.y;
-	}
-	
-	private double getCurrentDecelerationDistanceSquared() {
-		return getSpeedSquared() / ((2*mRateOfAcceleration) * (2*mRateOfAcceleration));
 	}
 
 	private void updatePosition(long deltaT) {
