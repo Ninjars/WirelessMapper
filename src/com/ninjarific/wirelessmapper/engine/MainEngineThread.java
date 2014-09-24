@@ -108,6 +108,7 @@ public class MainEngineThread extends Thread {
 			mGraphicsView.createRendererForActor(actor);
 			
 			addWifiPointsFromConnections(connections);
+			actor.loadPointConnections(this);
 		}
 	}
 
