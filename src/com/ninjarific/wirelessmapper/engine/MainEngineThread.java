@@ -131,4 +131,9 @@ public class MainEngineThread extends Thread {
 		return mScanActors.get(id);
 	}
 
+	public WifiPointActor getPointActorById(long id) {
+		if (DEBUG) Log.d(TAG, "getPointActorById() " + id);
+		return mPointActors.get(id);
+	}
+
 }
