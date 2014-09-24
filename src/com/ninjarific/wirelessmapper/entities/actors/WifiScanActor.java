@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.ninjarific.wirelessmapper.database.orm.models.WifiConnectionData;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiScan;
+import com.ninjarific.wirelessmapper.engine.MainEngineThread;
 import com.ninjarific.wirelessmapper.entities.descriptors.WifiScanActorDescriptor;
 
 
@@ -23,10 +24,18 @@ public class WifiScanActor extends MoveableActor {
 		WifiScan scan = desc.getScan();
 		mScanConnections = desc.getScanConnections();
 		mId = scan.getId();
+		this.setMass(100);
 	}
 	
 	public String getActorLabel() {
 		return mId.toString();
+	}
+
+	public void loadPointConnections(MainEngineThread mainEngineThread) {
+		for (WifiConnectionData connection : mScanConnections) {
+			WifiPointActor targetActor = mainEngineThread.getPointActorById(connection.getPoint().getId());
+			this.addForceSource(targetActor, connection.getLevel());
+		}
 	}
 	
 }
