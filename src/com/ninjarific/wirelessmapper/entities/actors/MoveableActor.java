@@ -1,5 +1,7 @@
 package com.ninjarific.wirelessmapper.entities.actors;
 
+import java.util.ArrayList;
+
 import android.graphics.PointF;
 import android.os.SystemClock;
 import android.util.Log;
@@ -13,18 +15,20 @@ public class MoveableActor extends RootActor {
 	private static final double cInactiveVelocityCutoff = 0.01;
 	private static final long cInactiveMsCutoff = 1500; // time before an almost stationary object stops itself
 	private static final double cInactiveDistanceCutoff = 0.001;
+	private static final double cFrictionConstant = 0.99;
 	
 	private final double cOrbitalVelocity = 0.3 + (0.3 * Math.random());
 	
 	private PointF mPosition;
 	private PointF mLastPosition;
 	private PointF mVelocity;
+	private PointF mAcceleration;
 	private boolean mIsActive;
 	private long mLastActive;
 	protected Mode mMode = Mode.STANDARD;
 	protected long mOrbitStartTime;
 	private int mOrbitRadius;
-	private PointF mForce;
+	private ArrayList<ForceSource> mForceSources;
 	
 	enum Mode {
 		ORBIT,
@@ -51,22 +55,36 @@ public class MoveableActor extends RootActor {
 		mLastPosition = new PointF(mPosition.x, mPosition.y);
 		mIsActive = desc.isIsActive();
 		mVelocity = new PointF();
+		mAcceleration = new PointF();
 		mLastActive = SystemClock.elapsedRealtime();
 		if (DEBUG) Log.d(TAG, "isActive on startup " + mIsActive);
 	}
+	
+	private class ForceSource {
+		private RootActor mActor;
+		private double mTargetDistanceSquared;
 
-	public PointF getPosition() {
-		return mPosition;
-	}
-
-	public void setPosition(PointF position) {
-		mIsActive = true;
-		updatePosition(position);
+		public ForceSource(RootActor actor, double targetDistance) {
+			mActor = actor;
+			mTargetDistanceSquared = targetDistance * targetDistance;
+		}
+		
+		public PointF getAcceleration(PointF position, double mass) {
+			double distanceSquared = getSquareDistanceBetweenPoints(position, mActor.getPosition());
+			double deltaDistance = distanceSquared - mTargetDistanceSquared;
+			
+			// TODO: complete this function!
+			
+			PointF acceleration = new PointF();
+			return acceleration;
+		}
+		
 	}
 	
-	private void updatePosition(PointF newPos) {
-		mLastPosition.x = mPosition.x;
-		mLastPosition.y = mPosition.y;
+	@Override
+	public void setPosition(PointF newPos) {
+		mIsActive = true;
+		mLastPosition = mPosition;
 		mPosition = newPos;
 	}
 
@@ -79,14 +97,8 @@ public class MoveableActor extends RootActor {
 		mVelocity = velocity;
 	}
 	
-	public void onNewForceCalculation() {
-		mForce.x = 0;
-		mForce.y = 0;
-	}
-	
-	public void addForce(float x, float y) {
-		mForce.x += x;
-		mForce.y += y;
+	public void addForceSource(RootActor actor, double targetDistance) {
+		mForceSources.add(new ForceSource(actor, targetDistance));
 	}
 	
 	protected void setMode(Mode mode) {
@@ -110,14 +122,28 @@ public class MoveableActor extends RootActor {
 		}
 		
 		if (mIsActive) {
-			updateVelocity(deltaT);
-			updatePosition(deltaT);
+			double deltaSeconds = deltaT / 1000.0;
+			calculateCurrentAcceleration();
+			updateVelocity(deltaSeconds);
+			updatePosition(deltaSeconds);
 		}
 	}
 	
-	private void updateVelocity(long deltaT) {
+	private void calculateCurrentAcceleration() {
+		mAcceleration.x = 0;
+		mAcceleration.y = 0;
+		for (ForceSource source : mForceSources) {
+			PointF sourceAccel = source.getAcceleration(mPosition, 1f); // TODO: actual mass value
+			mAcceleration.x += sourceAccel.x;
+			mAcceleration.y += sourceAccel.y;
+		}
+	}
+
+	private void updateVelocity(double deltaSeconds) {
 		switch (mMode) {
 			case STANDARD: {
+				mVelocity.x = (float) ((mVelocity.x + mAcceleration.x * deltaSeconds) * cFrictionConstant);
+				mVelocity.y = (float) ((mVelocity.y + mAcceleration.y * deltaSeconds) * cFrictionConstant);
 				break;
 			}
 			case ORBIT: {
@@ -126,14 +152,14 @@ public class MoveableActor extends RootActor {
 		}
 	}
 
-	private void updatePosition(long deltaT) {
+	private void updatePosition(double deltaSeconds) {
 		mLastPosition.x = mPosition.x;
 		mLastPosition.y = mPosition.y;
 
 		switch (mMode) {
 			case STANDARD: {
-				mPosition.x += mVelocity.x * deltaT / 1000;
-				mPosition.y += mVelocity.y * deltaT / 1000;
+				mPosition.x += mVelocity.x * deltaSeconds;
+				mPosition.y += mVelocity.y * deltaSeconds;
 				break;
 			}
 			case ORBIT: {
@@ -144,12 +170,12 @@ public class MoveableActor extends RootActor {
 		}
 	}
 	
-	private static double getSquareDistanceBetweenPoints(PointF a, PointF b) {
-		return (b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y);
-	}
-	
 	private double getSpeedSquared() {
 		return (mVelocity.x * mVelocity.x) + (mVelocity.y * mVelocity.y);
+	}
+	
+	private static double getSquareDistanceBetweenPoints(PointF a, PointF b) {
+		return (b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y);
 	}
 	
 	/**
