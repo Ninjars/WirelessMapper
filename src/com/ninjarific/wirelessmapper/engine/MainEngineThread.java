@@ -96,6 +96,8 @@ public class MainEngineThread extends Thread {
 			mPointActors.valueAt(i).update(timeDelta);
 		}
 		
+		mGraphicsView.onEngineTick(timeDelta);
+		
 	}
 	
 	public void addWifiScan(WifiScan scan) {

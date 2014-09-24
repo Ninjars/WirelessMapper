@@ -32,6 +32,7 @@ public class ScanDisplayFragment extends RootFragment {
 		
 	    View view = inflater.inflate(R.layout.fragment_scan_display, container, false);
 		mGraphicsView = (GraphicsView) view.findViewById(R.id.scan_display_graphics_view);
+		mGraphicsView.setOnTouchListener(mGraphicsView);
 		
 	    return view;
 	}

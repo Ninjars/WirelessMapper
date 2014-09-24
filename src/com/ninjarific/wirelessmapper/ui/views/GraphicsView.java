@@ -4,10 +4,15 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.PointF;
+import android.support.v4.view.VelocityTrackerCompat;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.VelocityTracker;
+import android.view.View;
+import android.view.View.OnTouchListener;
 
 import com.ninjarific.wirelessmapper.MainActivity;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiScan;
@@ -18,10 +23,14 @@ import com.ninjarific.wirelessmapper.entities.actors.WifiScanActor;
 import com.ninjarific.wirelessmapper.graphics.renderers.GroupNode;
 import com.ninjarific.wirelessmapper.graphics.renderers.WifiPointGroupNode;
 import com.ninjarific.wirelessmapper.graphics.renderers.WifiScanGroupNode;
+import com.ninjarific.wirelessmapper.utilties.MathUtils;
 
-public class GraphicsView extends SurfaceView {
+public class GraphicsView extends SurfaceView implements OnTouchListener {
 	private static final String TAG = "GraphicsView";
 	private static final boolean DEBUG = true;
+	private static final float cViewFlingFrictionFactor = 4f;
+	private static final float cTapDetectionRadiusCutoff = 5*5;
+	private static final float cFlingVelocityCutoff = 100;
 	
     private SurfaceHolder mSurfaceHolder;
     private MainEngineThread mEngine;
@@ -32,6 +41,12 @@ public class GraphicsView extends SurfaceView {
 	private GroupNode mRenderTree;
 	private WifiScan mWifiScanToAdd;
 	private PointF mCenterTranslation;
+	private PointF mViewVelocity;
+	private VelocityTracker mVelocityTracker = null;
+	private Float mLastTouchX;
+	private Float mLastTouchY;
+	private Float mDownTouchX;
+	private Float mDownTouchY;
 
 	public GraphicsView(Context context) {
         super(context);
@@ -79,6 +94,7 @@ public class GraphicsView extends SurfaceView {
 			}
 			
 		});
+        
 	}
     
 	
@@ -176,4 +192,107 @@ public class GraphicsView extends SurfaceView {
 			mWifiScanToAdd = scan;
 		}
 	}
+
+	public void setVelocity(PointF velocity) {
+		mViewVelocity = velocity;
+		
+	}
+
+	private void translateView(float x, float y) {
+		PointF pos = mRenderTree.getTranslation();
+		pos.x += x;
+		pos.y += y;
+		mRenderTree.setTranslation(pos);
+		
+	}
+
+	public void onEngineTick(long timeDelta) {
+		if (mViewVelocity != null) {
+			updateViewTranslation(timeDelta);
+		}
+		
+	}
+
+	private void updateViewTranslation(long timeDelta) {
+		PointF pos = mRenderTree.getTranslation();
+		float seconds = (timeDelta / 1000f);
+		mViewVelocity.x -= mViewVelocity.x * cViewFlingFrictionFactor * seconds;
+		mViewVelocity.y -= mViewVelocity.y * cViewFlingFrictionFactor * seconds;
+		pos.x += mViewVelocity.x * seconds;
+		pos.y += mViewVelocity.y * seconds;
+		mRenderTree.setTranslation(pos);
+		
+	}
+
+	@Override
+	public boolean onTouch(View v, MotionEvent event) {
+        int index = event.getActionIndex();
+        int action = event.getActionMasked();
+        int pointerId = event.getPointerId(index);
+        
+		switch (event.getAction()) {
+			case MotionEvent.ACTION_DOWN: 
+				mLastTouchX = event.getX();
+				mLastTouchY = event.getY();
+				mDownTouchX = event.getX();
+				mDownTouchY = event.getY();
+				mViewVelocity = null;
+				
+				if(mVelocityTracker == null) {
+                    // Retrieve a new VelocityTracker object to watch the velocity of a motion.
+                    mVelocityTracker = VelocityTracker.obtain();
+                }
+                else {
+                    // Reset the velocity tracker back to its initial state.
+                    mVelocityTracker.clear();
+                }
+                // Add a user's movement to the tracker.
+                mVelocityTracker.addMovement(event);
+                
+				break;
+			
+			case MotionEvent.ACTION_MOVE: 
+				mVelocityTracker.addMovement(event);
+                // When you want to determine the velocity, call 
+                // computeCurrentVelocity(). Then call getXVelocity() 
+                // and getYVelocity() to retrieve the velocity for each pointer ID. 
+                mVelocityTracker.computeCurrentVelocity(500);
+                Log.d("", "X velocity: " + 
+                        VelocityTrackerCompat.getXVelocity(mVelocityTracker, 
+                        pointerId));
+                Log.d("", "Y velocity: " + 
+                        VelocityTrackerCompat.getYVelocity(mVelocityTracker,
+                        pointerId));
+
+                translateView(event.getX() - mLastTouchX, event.getY() - mLastTouchY);
+				mLastTouchX = event.getX();
+				mLastTouchY = event.getY();
+				
+                break;
+			
+			case MotionEvent.ACTION_UP: 
+                float dx = VelocityTrackerCompat.getXVelocity(mVelocityTracker, pointerId);
+                float dy = VelocityTrackerCompat.getYVelocity(mVelocityTracker, pointerId);
+                
+				if (MathUtils.getSquareDistanceBetweenPoints(mDownTouchX, mDownTouchY, event.getX(), event.getY()) < cTapDetectionRadiusCutoff) {
+					if (DEBUG) Log.i(TAG, "tap detected");
+				} else if (Math.abs(dx) > cFlingVelocityCutoff || Math.abs(dy) > cFlingVelocityCutoff) {
+					if (DEBUG) Log.i(TAG, "fling detected");
+                	setVelocity(new PointF(dx, dy));
+                }
+				
+			case MotionEvent.ACTION_CANCEL:
+                // Return a VelocityTracker object back to be re-used by others.
+				try {
+					mVelocityTracker.recycle();
+				} catch (IllegalStateException e) {
+					// TODO: work out why this is triggered quite so often!
+					Log.e(TAG, e.toString());
+				}
+                break;
+		}
+		return true;
+		
+	}
+
 }
