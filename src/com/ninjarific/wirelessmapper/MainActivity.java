@@ -78,10 +78,15 @@ public class MainActivity extends Activity {
 	}	
     
     public void showToastMessage(String message) {
-		if (DEBUG) Log.i(TAG, "showToastMessage()");
-		mToast.setText(message);
-		mToast.setDuration(Toast.LENGTH_SHORT);
-		mToast.show();
+		if (DEBUG) Log.i(TAG, "showToastMessage() " + message);
+		if (mToast != null) {
+			mToast.setText(message);
+			mToast.setDuration(Toast.LENGTH_SHORT);
+			mToast.show();
+		} else {
+			if (DEBUG) Log.w(TAG, "\t aborted - toast was null");
+			
+		}
     }
 	
 	public void setContentFragment(Fragment fragment, boolean addToBackStack) {
