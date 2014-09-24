@@ -3,7 +3,7 @@ package com.ninjarific.wirelessmapper.entities.actors;
 import android.graphics.PointF;
 
 public abstract class RootActor {
-	private PointF mPosition;
+	protected PointF mPosition;
 
 	public abstract void update(long timeDeltaMs);
 

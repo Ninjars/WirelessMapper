@@ -19,7 +19,6 @@ public class MoveableActor extends RootActor {
 	
 	private final double cOrbitalVelocity = 0.3 + (0.3 * Math.random());
 	
-	private PointF mPosition;
 	private PointF mLastPosition;
 	private PointF mVelocity;
 	private PointF mAcceleration;
