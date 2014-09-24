@@ -7,6 +7,7 @@ import android.os.SystemClock;
 import android.util.Log;
 
 import com.ninjarific.wirelessmapper.entities.descriptors.MovableActorDescriptor;
+import com.ninjarific.wirelessmapper.utilties.MathUtils;
 
 public class MoveableActor extends RootActor {
 	private static final String TAG = "MoveableActor";
@@ -16,7 +17,7 @@ public class MoveableActor extends RootActor {
 	private static final long cInactiveMsCutoff = 1500; // time before an almost stationary object stops itself
 	private static final double cInactiveDistanceCutoff = 0.001;
 	private static final double cMaxDistanceForForce = 200 * 200;
-	private static final double cFrictionConstant = 0.9;
+	private static final double cFrictionConstant = 0.8;
 	
 	private final double cOrbitalVelocity = 0.3 + (0.3 * Math.random());
 	
@@ -29,6 +30,7 @@ public class MoveableActor extends RootActor {
 	protected long mOrbitStartTime;
 	private int mOrbitRadius;
 	private ArrayList<ForceSource> mForceSources;
+	private double mMass = 1;
 	
 	enum Mode {
 		ORBIT,
@@ -72,9 +74,9 @@ public class MoveableActor extends RootActor {
 			mCachedAccel = new PointF();
 		}
 		
-		public PointF getAcceleration(PointF position, double mass) {
+		public PointF getAcceleration(PointF position) {
 			PointF actorPos = mActor.getPosition();
-			double distanceSquared = getSquareDistanceBetweenPoints(position, actorPos);
+			double distanceSquared = MathUtils.getSquareDistanceBetweenPoints(position, actorPos);
 			double deltaDistance = distanceSquared - mTargetDistanceSquared;
 			
 			// treat distance squared as basically the force we will be applying
@@ -93,8 +95,8 @@ public class MoveableActor extends RootActor {
 			double mag = Math.sqrt(dx * dx + dy * dy);
 			
 			
-			float fx = (float) (dx / mag * deltaDistance);
-			float fy = (float) (dy / mag * deltaDistance);
+			float fx = (float) ((dx / mag * deltaDistance) / mMass);
+			float fy = (float) ((dy / mag * deltaDistance) / mMass);
 			
 			mCachedAccel.set(fx, fy);
 			return mCachedAccel;
@@ -133,6 +135,10 @@ public class MoveableActor extends RootActor {
 		mOrbitRadius = (radius - 25) * 6;
 	}
 	
+	protected void setMass(double mass) {
+		mMass = mass;
+	}
+	
 	@Override
 	public void update(long deltaT) {
 		if (mIsActive) {
@@ -153,7 +159,7 @@ public class MoveableActor extends RootActor {
 	private void calculateCurrentAcceleration() {
 		mAcceleration.set(0,0);
 		for (ForceSource source : mForceSources) {
-			PointF sourceAccel = source.getAcceleration(mPosition, 1f); // TODO: actual mass value
+			PointF sourceAccel = source.getAcceleration(mPosition);
 			mAcceleration.x += sourceAccel.x;
 			mAcceleration.y += sourceAccel.y;
 		}
@@ -189,14 +195,6 @@ public class MoveableActor extends RootActor {
 		}
 	}
 	
-	private double getSpeedSquared() {
-		return (mVelocity.x * mVelocity.x) + (mVelocity.y * mVelocity.y);
-	}
-	
-	private static double getSquareDistanceBetweenPoints(PointF a, PointF b) {
-		return (b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y);
-	}
-	
 	/**
 	 * Checks to see if the actor is moving significantly.
 	 * @return
@@ -204,7 +202,7 @@ public class MoveableActor extends RootActor {
 	private boolean checkIfActive() {
 		if (Math.abs(mVelocity.x) > cInactiveVelocityCutoff 
 				|| Math.abs(mVelocity.y) > cInactiveVelocityCutoff 
-				|| getSquareDistanceBetweenPoints(mLastPosition, mPosition) > cInactiveDistanceCutoff) {
+				|| MathUtils.getSquareDistanceBetweenPoints(mLastPosition, mPosition) > cInactiveDistanceCutoff) {
 			mLastActive = SystemClock.elapsedRealtime();
 			return true;
 		} else {
