@@ -15,7 +15,8 @@ public class MoveableActor extends RootActor {
 	private static final double cInactiveVelocityCutoff = 0.01;
 	private static final long cInactiveMsCutoff = 1500; // time before an almost stationary object stops itself
 	private static final double cInactiveDistanceCutoff = 0.001;
-	private static final double cFrictionConstant = 0.99;
+	private static final double cMaxDistanceForForce = 200 * 200;
+	private static final double cFrictionConstant = 0.9;
 	
 	private final double cOrbitalVelocity = 0.3 + (0.3 * Math.random());
 	
@@ -56,26 +57,47 @@ public class MoveableActor extends RootActor {
 		mVelocity = new PointF();
 		mAcceleration = new PointF();
 		mLastActive = SystemClock.elapsedRealtime();
+		mForceSources = new ArrayList<ForceSource>();
 		if (DEBUG) Log.d(TAG, "isActive on startup " + mIsActive);
 	}
 	
 	private class ForceSource {
 		private RootActor mActor;
 		private double mTargetDistanceSquared;
+		private PointF mCachedAccel;
 
 		public ForceSource(RootActor actor, double targetDistance) {
 			mActor = actor;
-			mTargetDistanceSquared = targetDistance * targetDistance;
+			mTargetDistanceSquared = 10 * targetDistance * targetDistance;
+			mCachedAccel = new PointF();
 		}
 		
 		public PointF getAcceleration(PointF position, double mass) {
-			double distanceSquared = getSquareDistanceBetweenPoints(position, mActor.getPosition());
+			PointF actorPos = mActor.getPosition();
+			double distanceSquared = getSquareDistanceBetweenPoints(position, actorPos);
 			double deltaDistance = distanceSquared - mTargetDistanceSquared;
 			
-			// TODO: complete this function!
+			// treat distance squared as basically the force we will be applying
+			// f.x + f.y = deltaDistance
+			// cap at a max value
+			deltaDistance = Math.min(deltaDistance, cMaxDistanceForForce);
+			double dx = actorPos.x - position.x;
+			double dy = actorPos.y - position.y;
 			
-			PointF acceleration = new PointF();
-			return acceleration;
+			if (dx == 0 && dy == 0) {
+				dx = -1 + Math.random() * 2;
+				dy = -1 + Math.random() * 2;
+			}
+			
+			// normalise
+			double mag = Math.sqrt(dx * dx + dy * dy);
+			
+			
+			float fx = (float) (dx / mag * deltaDistance);
+			float fy = (float) (dy / mag * deltaDistance);
+			
+			mCachedAccel.set(fx, fy);
+			return mCachedAccel;
 		}
 		
 	}
@@ -129,8 +151,7 @@ public class MoveableActor extends RootActor {
 	}
 	
 	private void calculateCurrentAcceleration() {
-		mAcceleration.x = 0;
-		mAcceleration.y = 0;
+		mAcceleration.set(0,0);
 		for (ForceSource source : mForceSources) {
 			PointF sourceAccel = source.getAcceleration(mPosition, 1f); // TODO: actual mass value
 			mAcceleration.x += sourceAccel.x;
@@ -152,8 +173,7 @@ public class MoveableActor extends RootActor {
 	}
 
 	private void updatePosition(double deltaSeconds) {
-		mLastPosition.x = mPosition.x;
-		mLastPosition.y = mPosition.y;
+		mLastPosition.set(mPosition);
 
 		switch (mMode) {
 			case STANDARD: {
@@ -190,8 +210,7 @@ public class MoveableActor extends RootActor {
 		} else {
 			if (SystemClock.elapsedRealtime() - mLastActive > cInactiveMsCutoff) {
 				if (DEBUG) Log.d(TAG, "going inactive");
-				mVelocity.x = 0;
-				mVelocity.y = 0;
+				mVelocity.set(0,0);
 				return false;
 			}
 		}
