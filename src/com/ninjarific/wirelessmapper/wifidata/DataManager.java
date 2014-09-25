@@ -143,6 +143,7 @@ public class DataManager {
 		if (existingPoints.size() == 0) {
 			// no existing points found, so this scan is all new and no comparison needs to be run
 			if (DEBUG) Log.i(TAG, "\t no existing point matches found; creating new scan");
+			mMainActivity.showToastMessage("complete new scan");
 			scan = new WifiScan();
 			addPointsForScan(scan, existingPoints, newPoints, true);
 			
@@ -153,14 +154,21 @@ public class DataManager {
 				// no matching scan was found! This means the new scan is 
 				// sufficiently different to warrant a new set of connections!
 				if (DEBUG) Log.i(TAG, "\t no overlap found; creating new scan for all points");
+				mMainActivity.showToastMessage("no overlap; new scan");
 				scan = new WifiScan();
 				addPointsForScan(scan, existingPoints, newPoints, true);
 			
 			} else {
 				// matching scan found!  Existing points' connections are 
 				// sufficient, just add the new points to the matching scan
-				if (DEBUG) Log.i(TAG, "\t matching scan found; adding new point connections to found scan");
-				addPointsForScan(scan, existingPoints, newPoints, false);
+				if (!newPoints.isEmpty()) {
+					if (DEBUG) Log.i(TAG, "\t matching scan found; adding new point connections to found scan");
+					mMainActivity.showToastMessage("appending to old scan");
+					addPointsForScan(scan, existingPoints, newPoints, false);
+				} else {
+					if (DEBUG) Log.i(TAG, "\t matching scan found; no new points to add");
+					mMainActivity.showToastMessage("no new results");
+				}
 			}
 		}
 		
