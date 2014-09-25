@@ -130,7 +130,6 @@ public class MainActivity extends Activity {
 				mScanListener.remove(l);
 			}
 		}
-    	mToast.cancel();		
 	}  
     
 }
