@@ -19,7 +19,6 @@ import com.ninjarific.wirelessmapper.Constants;
 import com.ninjarific.wirelessmapper.MainActivity;
 import com.ninjarific.wirelessmapper.R;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiConnectionData;
-import com.ninjarific.wirelessmapper.database.orm.models.WifiPoint;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiScan;
 import com.ninjarific.wirelessmapper.listeners.ScanListener;
 import com.ninjarific.wirelessmapper.wifidata.DataManager;
@@ -68,6 +67,7 @@ public class ScanListFragment extends RootFragment implements OnClickListener, S
 	    	
 	    	if (view.getId() == R.id.buttonScan) {
 	    		if (DEBUG) Log.i(TAG, "Scan clicked");
+				mActivity.addScanListener(this);
 	    		mDataManager.startScan();
 				return;
 	    	}
@@ -81,6 +81,7 @@ public class ScanListFragment extends RootFragment implements OnClickListener, S
 	@Override
 	public void onScanResult(WifiScan scan) {
 		if (DEBUG) Log.i(TAG, "onScanResult()");
+		mActivity.removeScanListener(this);
 		mWifiScans = mDataManager.getAllWifiScanObjects();
 		Log.i(TAG, "datalist size: " + mWifiScans.size());
 		mListAdapter.clear();

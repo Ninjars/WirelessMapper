@@ -63,7 +63,6 @@ public class MainFragment extends RootFragment implements OnClickListener, ScanL
 			// TODO: database browser, for now just load the scan list view
 	        ScanListFragment frag = new ScanListFragment();
 			mActivity.setContentFragment(frag, true);
-			mActivity.addScanListener(frag);
 			
 		}
 		
