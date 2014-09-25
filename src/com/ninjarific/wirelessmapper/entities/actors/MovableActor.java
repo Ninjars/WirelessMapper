@@ -15,9 +15,9 @@ public class MovableActor extends RootActor {
 	private static final double cInactiveVelocityCutoff = 0.01;
 	private static final long cInactiveMsCutoff = 1500; // time before an almost stationary object stops itself
 	private static final double cInactiveDistanceCutoff = 0.001;
-	private static final double cMaxDistanceForForce = 200 * 200;
+	private static final double cMaxDistanceForForce = 150 * 150;
 	private static final double cFrictionConstant = 0.6;
-	private static final double cForceActivateThreashold = 100*100;
+	private static final double cForceActivateThreashold = 200*200;
 	
 	private final double cOrbitalVelocity = 0.3 + (0.3 * Math.random());
 
@@ -83,7 +83,7 @@ public class MovableActor extends RootActor {
 			// treat distance squared as basically the force we will be applying
 			// f.x + f.y = deltaDistance
 			// cap at a max value
-			deltaDistance = Math.min(deltaDistance, cMaxDistanceForForce);
+			deltaDistance = Math.min(Math.max(deltaDistance, -cMaxDistanceForForce), cMaxDistanceForForce);
 			double dx = actorPos.x - position.x;
 			double dy = actorPos.y - position.y;
 			
