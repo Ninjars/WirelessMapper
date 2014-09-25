@@ -16,7 +16,6 @@ import com.ninjarific.wirelessmapper.database.orm.models.WifiScan;
 import com.ninjarific.wirelessmapper.listeners.ScanListener;
 import com.ninjarific.wirelessmapper.ui.MainFragment;
 import com.ninjarific.wirelessmapper.ui.RootFragment;
-import com.ninjarific.wirelessmapper.ui.ScanListFragment;
 import com.ninjarific.wirelessmapper.wifidata.DataManager;
 
 public class MainActivity extends Activity {

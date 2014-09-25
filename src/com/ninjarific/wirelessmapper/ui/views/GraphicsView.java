@@ -96,10 +96,7 @@ public class GraphicsView extends SurfaceView implements OnTouchListener {
 			}
 			
 		});
-        
 	}
-    
-	
 	
     protected void onSurfaceCreated() {
 		if (DEBUG) Log.d(TAG, "onSurfaceCreated()");
