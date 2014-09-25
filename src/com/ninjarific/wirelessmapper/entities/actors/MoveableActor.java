@@ -18,9 +18,11 @@ public class MoveableActor extends RootActor {
 	private static final double cInactiveDistanceCutoff = 0.001;
 	private static final double cMaxDistanceForForce = 200 * 200;
 	private static final double cFrictionConstant = 0.6;
+	private static final double cForceActivateThreashold = 100*100;
 	
 	private final double cOrbitalVelocity = 0.3 + (0.3 * Math.random());
-	
+
+	private PointF mPosition;
 	private PointF mLastPosition;
 	private PointF mVelocity;
 	private PointF mAcceleration;
@@ -64,11 +66,11 @@ public class MoveableActor extends RootActor {
 	}
 	
 	private class ForceSource {
-		private RootActor mActor;
+		private MoveableActor mActor;
 		private double mTargetDistanceSquared;
 		private PointF mCachedAccel;
 
-		public ForceSource(RootActor actor, double targetDistance) {
+		public ForceSource(MoveableActor actor, double targetDistance) {
 			mActor = actor;
 			mTargetDistanceSquared = 10 * targetDistance * targetDistance;
 			mCachedAccel = new PointF();
@@ -101,14 +103,20 @@ public class MoveableActor extends RootActor {
 			mCachedAccel.set(fx, fy);
 			return mCachedAccel;
 		}
-		
+
+		public void activate() {
+			mActor.activate();
+		}
 	}
 	
-	@Override
 	public void setPosition(PointF newPos) {
 		mIsActive = true;
 		mLastPosition = mPosition;
 		mPosition = newPos;
+	}
+
+	public PointF getPosition() {
+		return mPosition;
 	}
 
 	public PointF getVelocity() {
@@ -120,7 +128,7 @@ public class MoveableActor extends RootActor {
 		mVelocity = velocity;
 	}
 	
-	public void addForceSource(RootActor actor, double targetDistance) {
+	public void addForceSource(MoveableActor actor, double targetDistance) {
 		if (actor != null) {
 			mForceSources.add(new ForceSource(actor, targetDistance));
 		} else {
@@ -141,6 +149,10 @@ public class MoveableActor extends RootActor {
 	
 	protected void setMass(double mass) {
 		mMass = mass;
+	}
+	
+	public void activate() {
+		mIsActive = true;
 	}
 	
 	@Override
@@ -167,6 +179,16 @@ public class MoveableActor extends RootActor {
 			mAcceleration.x += sourceAccel.x;
 			mAcceleration.y += sourceAccel.y;
 		}
+		if (mAcceleration.x*mAcceleration.x > cForceActivateThreashold ||mAcceleration.y*mAcceleration.y > cForceActivateThreashold){
+			awakenConnectedForceSources();
+		}
+	}
+
+	private void awakenConnectedForceSources() {
+		for (ForceSource fs : mForceSources) {
+			fs.activate();
+		}
+		
 	}
 
 	private void updateVelocity(double deltaSeconds) {
