@@ -1,7 +1,7 @@
 package com.ninjarific.wirelessmapper.engine;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 
 import android.graphics.Canvas;
 import android.os.SystemClock;
@@ -13,8 +13,6 @@ import com.ninjarific.wirelessmapper.database.orm.models.WifiPoint;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiScan;
 import com.ninjarific.wirelessmapper.entities.actors.WifiPointActor;
 import com.ninjarific.wirelessmapper.entities.actors.WifiScanActor;
-import com.ninjarific.wirelessmapper.entities.descriptors.WifiPointActorDescriptor;
-import com.ninjarific.wirelessmapper.entities.descriptors.WifiScanActorDescriptor;
 import com.ninjarific.wirelessmapper.ui.views.GraphicsView;
 import com.ninjarific.wirelessmapper.wifidata.DataManager;
 
@@ -105,29 +103,27 @@ public class MainEngineThread extends Thread {
 		if (DEBUG) Log.d(TAG, "addWifiScan() " + mScans);
 		for (WifiScan scan : mScans) {
 			if (mScanActors.get(scan.getId()) == null) {
-				List<WifiConnectionData> connections = mDataManager.getConnectionsForScan(scan);
-				WifiScanActorDescriptor desc = new WifiScanActorDescriptor(scan, connections);
-				WifiScanActor actor = new WifiScanActor(desc);
+				Set<WifiConnectionData> connections = mDataManager.getConnectionsForScan(scan);
+				WifiScanActor actor = new WifiScanActor(scan, connections);
 				mScanActors.put(scan.getId(), actor);
 				mGraphicsView.createRendererForActor(actor);
 			}
 		}
 
 		for (WifiScan scan : mScans) {
-			List<WifiConnectionData> connections = mDataManager.getConnectionsForScan(scan);
+			Set<WifiConnectionData> connections = mDataManager.getConnectionsForScan(scan);
 			addWifiPointsFromConnections(connections);
 			mScanActors.get(scan.getId()).loadPointConnections(this);
 		}
 	}
 
-	private void addWifiPointsFromConnections(List<WifiConnectionData> connections) {
+	private void addWifiPointsFromConnections(Set<WifiConnectionData> connections) {
 		if (DEBUG) Log.d(TAG, "addWifiPointsFromConnections() count " + connections.size());
 		for (WifiConnectionData connection : connections) {
 			WifiPoint point = connection.getPoint();
 			if (mPointActors.get(point.getId()) == null) {
-				List<WifiConnectionData> scanConnections = mDataManager.getConnectionsForPoint(point);
-				WifiPointActorDescriptor desc = new WifiPointActorDescriptor(point, scanConnections);
-				WifiPointActor actor = new WifiPointActor(desc, this);
+				Set<WifiConnectionData> scanConnections = mDataManager.getConnectionsForPoint(point);
+				WifiPointActor actor = new WifiPointActor(point, scanConnections, this);
 				mPointActors.put(point.getId(), actor);
 				mGraphicsView.createRendererForActor(actor);
 			}

@@ -1,27 +1,26 @@
 package com.ninjarific.wirelessmapper.entities.actors;
 
-import java.util.List;
+import java.util.Set;
 
+import android.graphics.PointF;
 import android.util.Log;
 
 import com.ninjarific.wirelessmapper.database.orm.models.WifiConnectionData;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiPoint;
 import com.ninjarific.wirelessmapper.engine.MainEngineThread;
-import com.ninjarific.wirelessmapper.entities.descriptors.WifiPointActorDescriptor;
 
 
 public class WifiPointActor extends MovableActor {
 	private static final String TAG = "WifiPointActor";
 	private static final boolean DEBUG = true;
 	
-	private List<WifiConnectionData> mScanConnections;
+	private Set<WifiConnectionData> mScanConnections;
 	private String mName;
 	private Long mId;
 	
-	public WifiPointActor(WifiPointActorDescriptor desc, MainEngineThread mainEngineThread) {
-		super(desc);
-		WifiPoint point = desc.getPoint();
-		mScanConnections = desc.getScanConnections();
+	public WifiPointActor(WifiPoint point, Set<WifiConnectionData> scanConnections, MainEngineThread mainEngineThread) {
+		super(new PointF(0,0), true);
+		mScanConnections = scanConnections;
 		mName = point.getSsid();
 		mId = point.getId();
 

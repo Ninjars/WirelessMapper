@@ -6,7 +6,6 @@ import android.graphics.PointF;
 import android.os.SystemClock;
 import android.util.Log;
 
-import com.ninjarific.wirelessmapper.entities.descriptors.MovableActorDescriptor;
 import com.ninjarific.wirelessmapper.utilties.MathUtils;
 
 public class MovableActor extends RootActor {
@@ -54,10 +53,10 @@ public class MovableActor extends RootActor {
 	 * and passed down to the point and scan actors to be resolved by the actors into their individual accelerations
 	 */
 
-	public MovableActor(MovableActorDescriptor desc) {
-		mPosition = desc.getPosition();
+	public MovableActor(PointF position, boolean isActive) {
+		mPosition = position;
 		mLastPosition = new PointF(mPosition.x, mPosition.y);
-		mIsActive = desc.isIsActive();
+		mIsActive = isActive;
 		mVelocity = new PointF();
 		mAcceleration = new PointF();
 		mLastActive = SystemClock.elapsedRealtime();

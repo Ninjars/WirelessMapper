@@ -190,7 +190,7 @@ public class DataManager {
 		
 		// assemble scans for each point that match the signal strength found by this scan's connections
 		for (WifiPoint point : points) {
-			List<WifiConnectionData> allConnectionsForPoint = getConnectionsForPoint(point);
+			Set<WifiConnectionData> allConnectionsForPoint = getConnectionsForPoint(point);
 			if (DEBUG) Log.d(TAG, "\t found " + allConnectionsForPoint.size() + " connections for point " + point);
 			int min = point.getLevel() - Constants.POINT_LEVEL_SIGNIFICANT_VARIATION;
 			int max = point.getLevel() + Constants.POINT_LEVEL_SIGNIFICANT_VARIATION;
@@ -319,9 +319,9 @@ public class DataManager {
 	/*
 	 * returns all the connections related to a scan
 	 */
-	public List<WifiConnectionData> getConnectionsForScan(WifiScan scan) {
+	public Set<WifiConnectionData> getConnectionsForScan(WifiScan scan) {
 		if (DEBUG) Log.i(TAG, "getConnectionsForScan()");
-		List<WifiConnectionData> data = lookupConnectionsForScan(scan);
+		Set<WifiConnectionData> data = lookupConnectionsForScan(scan);
 		if (DEBUG) if (data != null) {
 			Log.i(TAG, "\t data size: " + data.size());
 		} else {
@@ -333,9 +333,9 @@ public class DataManager {
 	/*
 	 * returns all the connections related to a point
 	 */
-	public List<WifiConnectionData> getConnectionsForPoint(WifiPoint point) {
+	public Set<WifiConnectionData> getConnectionsForPoint(WifiPoint point) {
 		if (DEBUG) Log.i(TAG, "getConnectionsForPoint() " + point);
-		List<WifiConnectionData> data = lookupConnectionsForPoint(point);
+		Set<WifiConnectionData> data = lookupConnectionsForPoint(point);
 		if (DEBUG) {
 			if (data != null) {
 				Log.i(TAG, "\t data: " + data.toString());
@@ -410,28 +410,28 @@ public class DataManager {
 		}
 	}
 
-	private List<WifiConnectionData> lookupConnectionsForScan(WifiScan scan) {
+	private Set<WifiConnectionData> lookupConnectionsForScan(WifiScan scan) {
 		if (connectionsForScanQuery == null) {
 			connectionsForScanQuery = makeConnectionsForScanQuery();
 		}
 		try {
 			connectionsForScanQuery.setArgumentHolderValue(0, scan);
-			return mDatabaseHelper.getDaoForModelClass(WifiConnectionData.class).query(connectionsForScanQuery);
+			return new HashSet<WifiConnectionData>(mDatabaseHelper.getDaoForModelClass(WifiConnectionData.class).query(connectionsForScanQuery));
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return null;
 		}
 	}
 	
-	private List<WifiConnectionData> lookupConnectionsForPoint(WifiPoint point) {
+	private Set<WifiConnectionData> lookupConnectionsForPoint(WifiPoint point) {
 		if (connectionsForPointQuery == null) {
 			connectionsForPointQuery = makeConnectionsForPointQuery();
 		}
 		try {
 			connectionsForPointQuery.setArgumentHolderValue(0, point);
-			return mDatabaseHelper
+			return new HashSet<WifiConnectionData>(mDatabaseHelper
 					.getDaoForModelClass(WifiConnectionData.class)
-					.query(connectionsForPointQuery);
+					.query(connectionsForPointQuery));
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return null;

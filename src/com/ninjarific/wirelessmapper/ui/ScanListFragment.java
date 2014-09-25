@@ -1,6 +1,7 @@
 package com.ninjarific.wirelessmapper.ui;
 
 import java.util.List;
+import java.util.Set;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -95,7 +96,7 @@ public class ScanListFragment extends RootFragment implements OnClickListener, S
 		WifiScan item = mListAdapter.getItem(position);
 		if (DEBUG) Log.i(TAG, "onItemClick() " + item.toString());
 		
-		List<WifiConnectionData> points = mDataManager.getConnectionsForScan(item);
+		Set<WifiConnectionData> points = mDataManager.getConnectionsForScan(item);
 		PointsListFragment frag = new PointsListFragment();
 		frag.setInfo(points);
 		

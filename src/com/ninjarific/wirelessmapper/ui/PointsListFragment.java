@@ -1,6 +1,7 @@
 package com.ninjarific.wirelessmapper.ui;
 
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Set;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -15,7 +16,6 @@ import com.ninjarific.wirelessmapper.Constants;
 import com.ninjarific.wirelessmapper.MainActivity;
 import com.ninjarific.wirelessmapper.R;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiConnectionData;
-import com.ninjarific.wirelessmapper.database.orm.models.WifiPoint;
 
 public class PointsListFragment extends RootFragment {
 	private static final String TAG = "PointsListFragment";
@@ -25,7 +25,7 @@ public class PointsListFragment extends RootFragment {
 	private ArrayAdapter<WifiConnectionData> mListAdapter;
 	private ListView mListView;
 	
-	private List<WifiConnectionData> mWifiConnections;	
+	private ArrayList<WifiConnectionData> mWifiConnections;	
 	
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
@@ -48,8 +48,8 @@ public class PointsListFragment extends RootFragment {
 	    return view;
 	}
 
-	public void setInfo(List<WifiConnectionData> points) {
-		mWifiConnections = points;
+	public void setInfo(Set<WifiConnectionData> points) {
+		mWifiConnections = new ArrayList<WifiConnectionData>(points);
 		
 	}
 }
