@@ -175,7 +175,7 @@ public class DataManager {
 	 */
 	private WifiScan getWifiScanMatchFromPoints(List<WifiPoint> points) {
 		if (DEBUG) Log.i(TAG, "getWifiScanMatchFromPoints()");
-		List<List<WifiConnectionData>> matchingData = new ArrayList<List<WifiConnectionData>>();
+		List<List<WifiConnectionData>> dataForEachPoint = new ArrayList<List<WifiConnectionData>>();
 		Set<WifiConnectionData> foundConnections = new HashSet<WifiConnectionData>();
 		// assemble scans for each point that match the signal strength found by this scan's connections
 		for (WifiPoint point : points) {
@@ -197,7 +197,7 @@ public class DataManager {
 			}
 			
 			if (matchingConnections.size() > 0) {
-				matchingData.add(matchingConnections);
+				dataForEachPoint.add(matchingConnections);
 			}
 		}
 		
@@ -214,39 +214,29 @@ public class DataManager {
 		}
 		
 		for (WifiConnectionData connection : foundConnections) {
-			boolean match = false;
-			if (DEBUG) Log.d(TAG, "\t checking connection " + connection);
-			for (List<WifiConnectionData> connectionData : matchingData) {
-				
-				if (DEBUG) {
-					StringBuilder sb = new StringBuilder();
-					sb.append("\t checking vs: ");
-					for (WifiConnectionData sc : connectionData) {
-						sb.append("\n\t\t " + sc.toString());
-					}
-					Log.v(TAG, sb.toString());
-				}
-
-				// check to see if there is a match in the list
-				boolean matchInList = false;
-				for (WifiConnectionData data : connectionData) {
-					if (data.approximateConnectionMatch(connection)) {
-						matchInList = true;
-						if (DEBUG) Log.w(TAG, "\t " + data + " in list matches " + connection);
-						break;
+			WifiScan testingScan = connection.getScan();
+			boolean scanIsValidForAllPoints = true;
+			if (DEBUG) Log.d(TAG, "\t checking scan " + testingScan);
+			for (List<WifiConnectionData> pointConnectionData : dataForEachPoint) {
+				//see if each list has a connection that contains the scan
+				boolean match = false;
+				for (WifiConnectionData data : pointConnectionData) {
+					if (data.getScan().equals(testingScan)) {
+						// this point has a connection to the scan being tested for
+						match = true;
 					}
 				}
 				
-				// if there's no match in the list then break
-				if (matchInList) {
-					match = true;
+				// if a point doesn't have the scan in its connections, then move on to the next scan
+				if (!match) {
+					scanIsValidForAllPoints = false;
 					break;
 				}
 			}
 			
-			if (match == true) {
-				if (DEBUG) Log.w(TAG, "\t match found! " + connection);
-				return connection.getScan();
+			if (scanIsValidForAllPoints) {
+				if (DEBUG) Log.d(TAG, "\t scan matched for all point data");
+				return testingScan;
 			}
 		}
 		
@@ -579,6 +569,47 @@ public class DataManager {
 		}
 		if (DEBUG) Log.d(TAG, "\t return data: " + data);
 		return data;
+	}
+
+	public ArrayList<WifiScan> getAllScansConnectedToScan(WifiScan scan) {
+		HashSet<WifiScan> connectedScans = new HashSet<WifiScan>();
+		connectedScans.add(scan);
+		
+		int lastSize = 0;
+		while (connectedScans.size() > lastSize) {
+			lastSize = connectedScans.size();
+			HashSet<WifiScan> newScans = new HashSet<WifiScan>();
+			for (WifiScan s : connectedScans) {
+				newScans.addAll(getScansConnectedToScan(s));
+			}
+			connectedScans.addAll(newScans);
+		}
+		
+		
+		// just to return the original scan as the first item in the list
+		connectedScans.remove(scan);
+		ArrayList<WifiScan> scanList = new ArrayList<WifiScan>();
+		scanList.add(scan);
+		scanList.addAll(connectedScans);
+		return scanList;
+	}
+	
+	private HashSet<WifiScan> getScansConnectedToScan(WifiScan scan) {
+		HashSet<WifiScan> connectedScans = new HashSet<WifiScan>();
+		connectedScans.add(scan);
+		
+		List<WifiPoint> points = getPointsForScan(scan);
+		
+		if (points != null) {
+			for (WifiPoint point : points) {
+				List<WifiScan> scans = getScansForPoint(point);
+				if (scans != null) {
+					connectedScans.addAll(scans);
+				}
+			}
+		}
+		
+		return connectedScans;
 	}
 	
 }
