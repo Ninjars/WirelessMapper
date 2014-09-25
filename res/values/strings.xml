@@ -5,5 +5,9 @@
     <string name="btn_scan">Scan</string>
     <string name="btn_clear">Clear</string>
 
+    <!-- main menu -->
+    <string name="main_btn_scan">Scan</string>
+    <string name="main_btn_connect">Connect</string>
+    <string name="main_btn_data">Data</string>
 
 </resources>

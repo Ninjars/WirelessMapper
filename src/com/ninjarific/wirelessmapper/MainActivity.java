@@ -14,6 +14,8 @@ import com.j256.ormlite.android.apptools.OpenHelperManager;
 import com.ninjarific.wirelessmapper.database.DatabaseHelper;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiScan;
 import com.ninjarific.wirelessmapper.listeners.ScanListener;
+import com.ninjarific.wirelessmapper.ui.MainFragment;
+import com.ninjarific.wirelessmapper.ui.RootFragment;
 import com.ninjarific.wirelessmapper.ui.ScanListFragment;
 import com.ninjarific.wirelessmapper.wifidata.DataManager;
 
@@ -44,9 +46,8 @@ public class MainActivity extends Activity {
         mToast = Toast.makeText(getApplicationContext(), "", Toast.LENGTH_SHORT);
         mToast.cancel();
 
-        ScanListFragment frag = new ScanListFragment();
-		setContentFragment(frag, false); // create main fragment and assign here
-		mScanListener.add(frag);
+        RootFragment frag = new MainFragment();
+		setContentFragment(frag, false);
         
     }
 	
@@ -77,6 +78,14 @@ public class MainActivity extends Activity {
 		super.onStop();
 	}	
     
+	public void addScanListener(ScanListener l) {
+		mScanListener.add(l);
+	}	
+    
+	public void removeScanListener(ScanListener l) {
+		mScanListener.remove(l);
+	}
+	
     public void showToastMessage(String message) {
 		if (DEBUG) Log.i(TAG, "showToastMessage() " + message);
 		if (mToast != null) {
@@ -103,19 +112,25 @@ public class MainActivity extends Activity {
 
 	public void onScanResult(WifiScan point) {
 		if (DEBUG) Log.i(TAG, "onScanResult()");
+		ArrayList<ScanListener> listenersToRemove = null;
 		for (ScanListener l : mScanListener) {
 			if (DEBUG) Log.i(TAG, "onScanResult() --> ScanListener");
-			l.onScanResult(point);
+			if (l == null) {
+				if (listenersToRemove == null) {
+					listenersToRemove = new ArrayList<ScanListener>();
+				}
+				listenersToRemove.add(l);
+			} else {
+				l.onScanResult(point);
+			}
+		}
+		
+		if (listenersToRemove != null) {
+			for (ScanListener l : listenersToRemove) {
+				mScanListener.remove(l);
+			}
 		}
     	mToast.cancel();		
-	}
-
-	public void onDataSetChanged() {
-		for (ScanListener l : mScanListener) {
-			if (DEBUG) Log.i(TAG, "onDataSetChanged() --> ScanListener");
-			l.onDataChanged();
-		}
-	}    
 	}  
     
 }
