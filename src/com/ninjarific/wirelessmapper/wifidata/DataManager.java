@@ -178,6 +178,8 @@ public class DataManager {
 	
 	/**
 	 * returns the first scan found that matches the points
+	 * - all passed points must closely match with the connections to the same
+	 * scan otherwise will return null.
 	 * @param points
 	 * @return
 	 */
@@ -185,20 +187,17 @@ public class DataManager {
 		if (DEBUG) Log.i(TAG, "getWifiScanMatchFromPoints()");
 		List<List<WifiConnectionData>> dataForEachPoint = new ArrayList<List<WifiConnectionData>>();
 		Set<WifiConnectionData> foundConnections = new HashSet<WifiConnectionData>();
+		
 		// assemble scans for each point that match the signal strength found by this scan's connections
 		for (WifiPoint point : points) {
-			if (point.getLevel() < Constants.SCAN_CONNECTION_THREASHOLD) {
-				Log.e(TAG, "getWifiScanMatchFromPoints() passed point with level beneath threashold at " + point.getLevel());
-				continue;
-			}
-			List<WifiConnectionData> connections = getConnectionsForPoint(point);
-			if (DEBUG) Log.d(TAG, "\t found " + connections.size() + " connections for point " + point);
+			List<WifiConnectionData> allConnectionsForPoint = getConnectionsForPoint(point);
+			if (DEBUG) Log.d(TAG, "\t found " + allConnectionsForPoint.size() + " connections for point " + point);
 			int min = point.getLevel() - Constants.POINT_LEVEL_SIGNIFICANT_VARIATION;
 			int max = point.getLevel() + Constants.POINT_LEVEL_SIGNIFICANT_VARIATION;
 			List<WifiConnectionData> matchingConnections = new ArrayList<WifiConnectionData>();
-			for (WifiConnectionData connection : connections) {
+			for (WifiConnectionData connection : allConnectionsForPoint) {
 				if (connection.getLevel() > min && connection.getLevel() < max) {
-					if (DEBUG) Log.d(TAG, "\t found matching connection " + connection);
+					if (DEBUG) Log.d(TAG, "\t found connection with similar level" + connection);
 					matchingConnections.add(connection);
 					foundConnections.add(connection);
 				}
@@ -206,6 +205,9 @@ public class DataManager {
 			
 			if (matchingConnections.size() > 0) {
 				dataForEachPoint.add(matchingConnections);
+			} else {
+				if (DEBUG) Log.d(TAG, "\t found no connections with similar level");
+				return null;
 			}
 		}
 		
@@ -230,6 +232,7 @@ public class DataManager {
 				boolean match = false;
 				for (WifiConnectionData data : pointConnectionData) {
 					if (data.getScan().equals(testingScan)) {
+						if (DEBUG) Log.d(TAG, "\t found matching scan " + data.getScan());
 						// this point has a connection to the scan being tested for
 						match = true;
 					}
@@ -237,6 +240,7 @@ public class DataManager {
 				
 				// if a point doesn't have the scan in its connections, then move on to the next scan
 				if (!match) {
+					if (DEBUG) Log.d(TAG, "\t no matching scan found for " + testingScan);
 					scanIsValidForAllPoints = false;
 					break;
 				}
