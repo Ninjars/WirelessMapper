@@ -4,8 +4,8 @@ import android.graphics.Color;
 
 public class Constants {
 	public static final boolean DEBUG = true;
-	public static final int SCAN_CONNECTION_THREASHOLD = 25;
-	public static final int POINT_LEVEL_SIGNIFICANT_VARIATION = 5;
+	public static final int SCAN_CONNECTION_THREASHOLD = 20;
+	public static final int POINT_LEVEL_SIGNIFICANT_VARIATION = 20;
 
 	/*
 	 * Color ints
