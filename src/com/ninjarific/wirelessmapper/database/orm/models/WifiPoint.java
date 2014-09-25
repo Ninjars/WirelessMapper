@@ -27,7 +27,11 @@ public class WifiPoint extends BaseModel<Long> {
 
 	@Override
 	public String toString() {
-		return getId() + " " + getSsid() + " " + getBssid();
+		if (level != 0) {
+			return getId() + " " + getSsid() + " " + getBssid() + " " + level;
+		} else {
+			return getId() + " " + getSsid() + " " + getBssid();
+		}
 	}
 	public String getSsid() {
 		return ssid;
