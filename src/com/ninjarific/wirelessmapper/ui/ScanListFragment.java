@@ -18,6 +18,8 @@ import android.widget.ListView;
 import com.ninjarific.wirelessmapper.Constants;
 import com.ninjarific.wirelessmapper.MainActivity;
 import com.ninjarific.wirelessmapper.R;
+import com.ninjarific.wirelessmapper.database.orm.models.WifiConnectionData;
+import com.ninjarific.wirelessmapper.database.orm.models.WifiPoint;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiScan;
 import com.ninjarific.wirelessmapper.listeners.ScanListener;
 import com.ninjarific.wirelessmapper.wifidata.DataManager;
@@ -50,8 +52,8 @@ public class ScanListFragment extends RootFragment implements OnClickListener, S
 	    
 		mScanButton = (Button) view.findViewById(R.id.buttonScan);
 		mScanButton.setOnClickListener(this);
-		mClearButton = (Button) view.findViewById(R.id.buttonClear);
-		mClearButton.setOnClickListener(this);
+//		mClearButton = (Button) view.findViewById(R.id.buttonClear);
+//		mClearButton.setOnClickListener(this);
 		
 		mListAdapter = new ArrayAdapter<WifiScan>(mActivity, R.layout.row, mWifiScans);
 		
@@ -69,19 +71,12 @@ public class ScanListFragment extends RootFragment implements OnClickListener, S
 	    		mDataManager.startScan();
 				return;
 	    	}
-	    	if (view.getId() == R.id.buttonClear) {
-	    		if (DEBUG) Log.i(TAG, "Clear clicked");
-//	    		mDataManager.clearDatabase();
-				return;
-	    	}
-	    }
-
-	@Override
-	public void onDataChanged() {
-		// TODO
-		
-		return;
-	}
+//	    	if (view.getId() == R.id.buttonClear) {
+//	    		if (DEBUG) Log.i(TAG, "Clear clicked");
+////	    		mDataManager.clearDatabase();
+//				return;
+//	    	}
+    }
 
 	@Override
 	public void onScanResult(WifiScan scan) {
@@ -99,12 +94,12 @@ public class ScanListFragment extends RootFragment implements OnClickListener, S
 		WifiScan item = mListAdapter.getItem(position);
 		if (DEBUG) Log.i(TAG, "onItemClick() " + item.toString());
 		
-//		List<WifiPoint> points = mDataManager.getPointsForScan(item);
-//		PointsListFragment frag = new PointsListFragment();
-//		frag.setInfo(points);
+		List<WifiConnectionData> points = mDataManager.getConnectionsForScan(item);
+		PointsListFragment frag = new PointsListFragment();
+		frag.setInfo(points);
 		
-		ScanDisplayFragment frag = new ScanDisplayFragment();
-		frag.setScanForDisplay(item);
+//		ScanDisplayFragment frag = new ScanDisplayFragment();
+//		frag.addScan(item);
 
 		mActivity.setContentFragment(frag, true);
 	}
