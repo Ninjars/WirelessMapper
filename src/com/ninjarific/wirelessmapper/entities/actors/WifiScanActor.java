@@ -10,7 +10,7 @@ import com.ninjarific.wirelessmapper.engine.MainEngineThread;
 import com.ninjarific.wirelessmapper.entities.descriptors.WifiScanActorDescriptor;
 
 
-public class WifiScanActor extends MoveableActor {
+public class WifiScanActor extends MovableActor {
 	private static final String TAG = "WifiScanActor";
 	private static final boolean DEBUG = true;
 	

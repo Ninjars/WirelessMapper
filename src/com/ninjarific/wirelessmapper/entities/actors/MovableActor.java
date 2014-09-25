@@ -9,7 +9,7 @@ import android.util.Log;
 import com.ninjarific.wirelessmapper.entities.descriptors.MovableActorDescriptor;
 import com.ninjarific.wirelessmapper.utilties.MathUtils;
 
-public class MoveableActor extends RootActor {
+public class MovableActor extends RootActor {
 	private static final String TAG = "MoveableActor";
 	private static final boolean DEBUG = true;
 	
@@ -54,7 +54,7 @@ public class MoveableActor extends RootActor {
 	 * and passed down to the point and scan actors to be resolved by the actors into their individual accelerations
 	 */
 
-	public MoveableActor(MovableActorDescriptor desc) {
+	public MovableActor(MovableActorDescriptor desc) {
 		mPosition = desc.getPosition();
 		mLastPosition = new PointF(mPosition.x, mPosition.y);
 		mIsActive = desc.isIsActive();
@@ -66,11 +66,11 @@ public class MoveableActor extends RootActor {
 	}
 	
 	private class ForceSource {
-		private MoveableActor mActor;
+		private MovableActor mActor;
 		private double mTargetDistanceSquared;
 		private PointF mCachedAccel;
 
-		public ForceSource(MoveableActor actor, double targetDistance) {
+		public ForceSource(MovableActor actor, double targetDistance) {
 			mActor = actor;
 			mTargetDistanceSquared = 10 * targetDistance * targetDistance;
 			mCachedAccel = new PointF();
@@ -128,7 +128,7 @@ public class MoveableActor extends RootActor {
 		mVelocity = velocity;
 	}
 	
-	public void addForceSource(MoveableActor actor, double targetDistance) {
+	public void addForceSource(MovableActor actor, double targetDistance) {
 		if (actor != null) {
 			mForceSources.add(new ForceSource(actor, targetDistance));
 		} else {
