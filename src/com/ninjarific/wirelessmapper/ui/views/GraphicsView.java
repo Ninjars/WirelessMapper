@@ -1,5 +1,7 @@
 package com.ninjarific.wirelessmapper.ui.views;
 
+import java.util.ArrayList;
+
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -39,7 +41,7 @@ public class GraphicsView extends SurfaceView implements OnTouchListener {
 	private MainActivity mMainActivity;
 
 	private GroupNode mRenderTree;
-	private WifiScan mWifiScanToAdd;
+	private ArrayList<WifiScan> mWifiScanToAdd;
 	private PointF mCenterTranslation;
 	private PointF mViewVelocity;
 	private VelocityTracker mVelocityTracker = null;
@@ -143,7 +145,7 @@ public class GraphicsView extends SurfaceView implements OnTouchListener {
         }
         
         if (mWifiScanToAdd != null) {
-        	mEngine.addWifiScan(mWifiScanToAdd);
+        	mEngine.addWifiScans(mWifiScanToAdd);
         }
 
 	 	// we have a pointer to the activity for call backs and managers,
@@ -185,11 +187,11 @@ public class GraphicsView extends SurfaceView implements OnTouchListener {
 
 	}
 	
-	public void addWifiScan(WifiScan scan) {
+	public void addWifiScans(ArrayList<WifiScan> mScans) {
 		if (mEngine != null) {
-			mEngine.addWifiScan(scan);
+			mEngine.addWifiScans(mScans);
 		} else {
-			mWifiScanToAdd = scan;
+			mWifiScanToAdd = mScans;
 		}
 	}
 

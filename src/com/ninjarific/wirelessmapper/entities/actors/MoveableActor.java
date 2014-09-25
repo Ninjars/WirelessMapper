@@ -17,7 +17,7 @@ public class MoveableActor extends RootActor {
 	private static final long cInactiveMsCutoff = 1500; // time before an almost stationary object stops itself
 	private static final double cInactiveDistanceCutoff = 0.001;
 	private static final double cMaxDistanceForForce = 200 * 200;
-	private static final double cFrictionConstant = 0.8;
+	private static final double cFrictionConstant = 0.6;
 	
 	private final double cOrbitalVelocity = 0.3 + (0.3 * Math.random());
 	
@@ -121,7 +121,11 @@ public class MoveableActor extends RootActor {
 	}
 	
 	public void addForceSource(RootActor actor, double targetDistance) {
-		mForceSources.add(new ForceSource(actor, targetDistance));
+		if (actor != null) {
+			mForceSources.add(new ForceSource(actor, targetDistance));
+		} else {
+			Log.w(TAG, "addForceSource() passed null actor");
+		}
 	}
 	
 	protected void setMode(Mode mode) {

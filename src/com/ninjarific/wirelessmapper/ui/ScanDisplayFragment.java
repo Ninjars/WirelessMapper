@@ -1,5 +1,7 @@
 package com.ninjarific.wirelessmapper.ui;
 
+import java.util.ArrayList;
+
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
@@ -19,7 +21,7 @@ public class ScanDisplayFragment extends RootFragment {
 
 	private MainActivity mActivity;
 	private GraphicsView mGraphicsView;
-	private WifiScan mScan;
+	private ArrayList<WifiScan> mScans;
 	
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
@@ -37,18 +39,29 @@ public class ScanDisplayFragment extends RootFragment {
 	    return view;
 	}
 	
-	public void setScanForDisplay(WifiScan scan) {
-		if (DEBUG) Log.i(TAG, "setScanForDisplay() " + scan);
-		mScan = scan;
+	public void addScan(WifiScan scan) {
+		if (mScans == null) {
+			mScans = new ArrayList<WifiScan>();
+		}
+		mScans.add(scan);
+	}
+	
+	public void addScans(ArrayList<WifiScan> scans) {
+		if (DEBUG) Log.i(TAG, "setScanForDisplay() " + scans);
+		if (mScans != null) {
+			mScans.addAll(scans);
+		} else {
+			mScans = scans;
+		}
 	}
 
 	@Override
 	public void onResume() {
 		super.onResume();
 		if (DEBUG) Log.i(TAG, "onResume()");
-		if (mScan != null) {
-			mGraphicsView.addWifiScan(mScan);
-			mScan = null;
+		if (mScans != null) {
+			mGraphicsView.addWifiScans(mScans);
+			mScans = null;
 		}
 		mGraphicsView.startEngine(mActivity);
 	}

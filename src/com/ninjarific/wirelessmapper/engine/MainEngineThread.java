@@ -1,5 +1,6 @@
 package com.ninjarific.wirelessmapper.engine;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import android.graphics.Canvas;
@@ -100,17 +101,22 @@ public class MainEngineThread extends Thread {
 		
 	}
 	
-	public void addWifiScan(WifiScan scan) {
-		if (DEBUG) Log.d(TAG, "addWifiScan() " + scan);
-		if (mScanActors.get(scan.getId()) == null) {
+	public void addWifiScans(ArrayList<WifiScan> mScans) {
+		if (DEBUG) Log.d(TAG, "addWifiScan() " + mScans);
+		for (WifiScan scan : mScans) {
+			if (mScanActors.get(scan.getId()) == null) {
+				List<WifiConnectionData> connections = mDataManager.getConnectionsForScan(scan);
+				WifiScanActorDescriptor desc = new WifiScanActorDescriptor(scan, connections);
+				WifiScanActor actor = new WifiScanActor(desc);
+				mScanActors.put(scan.getId(), actor);
+				mGraphicsView.createRendererForActor(actor);
+			}
+		}
+
+		for (WifiScan scan : mScans) {
 			List<WifiConnectionData> connections = mDataManager.getConnectionsForScan(scan);
-			WifiScanActorDescriptor desc = new WifiScanActorDescriptor(scan, connections);
-			WifiScanActor actor = new WifiScanActor(desc);
-			mScanActors.put(scan.getId(), actor);
-			mGraphicsView.createRendererForActor(actor);
-			
 			addWifiPointsFromConnections(connections);
-			actor.loadPointConnections(this);
+			mScanActors.get(scan.getId()).loadPointConnections(this);
 		}
 	}
 

@@ -14,6 +14,7 @@ import android.widget.ListView;
 import com.ninjarific.wirelessmapper.Constants;
 import com.ninjarific.wirelessmapper.MainActivity;
 import com.ninjarific.wirelessmapper.R;
+import com.ninjarific.wirelessmapper.database.orm.models.WifiConnectionData;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiPoint;
 
 public class PointsListFragment extends RootFragment {
@@ -21,10 +22,10 @@ public class PointsListFragment extends RootFragment {
 	private static final boolean DEBUG = Constants.DEBUG;
 	
 	private MainActivity mActivity;
-	private ArrayAdapter<WifiPoint> mListAdapter;
+	private ArrayAdapter<WifiConnectionData> mListAdapter;
 	private ListView mListView;
 	
-	private List<WifiPoint> mWifiPoints;	
+	private List<WifiConnectionData> mWifiConnections;	
 	
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
@@ -36,8 +37,8 @@ public class PointsListFragment extends RootFragment {
 	    View view = inflater.inflate(R.layout.fragment_points_list, container, false);
 	    mListView = (ListView) view.findViewById(R.id.list);
 		
-	    if (mWifiPoints != null) {
-	    	mListAdapter = new ArrayAdapter<WifiPoint>(mActivity, R.layout.row, mWifiPoints);
+	    if (mWifiConnections != null) {
+	    	mListAdapter = new ArrayAdapter<WifiConnectionData>(mActivity, R.layout.row, mWifiConnections);
 	    } else {
 	    	Log.e(TAG, "Points not set!");
 	    }
@@ -46,8 +47,9 @@ public class PointsListFragment extends RootFragment {
 		
 	    return view;
 	}
-	
-	public void setInfo(List<WifiPoint> points) {
-		mWifiPoints = points;
+
+	public void setInfo(List<WifiConnectionData> points) {
+		mWifiConnections = points;
+		
 	}
 }

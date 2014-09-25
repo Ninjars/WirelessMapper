@@ -11,8 +11,10 @@ import android.view.ViewGroup;
 import com.ninjarific.wirelessmapper.Constants;
 import com.ninjarific.wirelessmapper.MainActivity;
 import com.ninjarific.wirelessmapper.R;
+import com.ninjarific.wirelessmapper.database.orm.models.WifiScan;
+import com.ninjarific.wirelessmapper.listeners.ScanListener;
 
-public class MainFragment extends RootFragment implements OnClickListener {
+public class MainFragment extends RootFragment implements OnClickListener, ScanListener {
 	private static final String TAG = "MainFragment";
 	private static final boolean DEBUG = true && Constants.DEBUG;
 
@@ -53,15 +55,27 @@ public class MainFragment extends RootFragment implements OnClickListener {
 		} else if (view.equals(mConnectButtonView)) {
 			if (DEBUG) Log.d(TAG, "onClick() on Connect button");
 			// TODO: go to mapping view
+			mActivity.addScanListener(this);
+			mActivity.getDataManager().startScan();
 			
 		} else if (view.equals(mDataButtonView)) {
 			if (DEBUG) Log.d(TAG, "onClick() on Data button");
-			// TODO: database browser, for now just load the scan view
+			// TODO: database browser, for now just load the scan list view
 	        ScanListFragment frag = new ScanListFragment();
 			mActivity.setContentFragment(frag, false);
 			mActivity.addScanListener(frag);
 			
 		}
 		
+	}
+
+	@Override
+	public void onScanResult(WifiScan scan) {
+		mActivity.removeScanListener(this);
+		// use returned scan as the connection point to existing scans
+		ScanDisplayFragment frag = new ScanDisplayFragment();
+		frag.addScans(mActivity.getDataManager().getAllScansConnectedToScan(scan));
+
+		mActivity.setContentFragment(frag, false);
 	}
 }
