@@ -24,6 +24,7 @@ public class WifiPointActor extends MovableActor {
 		mScanConnections = new HashSet<WifiConnectionData>();
 		mName = point.getSsid();
 		mId = point.getId();
+		setMass(5);
 			
 	}
 
