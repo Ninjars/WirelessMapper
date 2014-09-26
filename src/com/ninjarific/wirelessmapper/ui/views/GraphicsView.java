@@ -228,6 +228,7 @@ public class GraphicsView extends SurfaceView implements OnTouchListener {
 		
 	}
 
+	@SuppressWarnings("fallthrough")
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
         int index = event.getActionIndex();
