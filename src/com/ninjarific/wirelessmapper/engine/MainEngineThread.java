@@ -1,7 +1,6 @@
 package com.ninjarific.wirelessmapper.engine;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 import android.graphics.Canvas;
@@ -100,12 +99,15 @@ public class MainEngineThread extends Thread {
 		
 	}
 	
+	// TODO: revise this to follow the pattern for add single scan
+	// this function will make more sense when points retain their last known position
+	// and it won't be horrible to add all.
 	public void addWifiScans(ArrayList<WifiScan> mScans) {
 		if (DEBUG) Log.d(TAG, "addWifiScan() " + mScans);
 		for (WifiScan scan : mScans) {
 			if (mScanActors.get(scan.getId()) == null) {
-				Set<WifiConnectionData> connections = mDataManager.getConnectionsForScan(scan);
-				WifiScanActor actor = new WifiScanActor(scan, connections);
+//				Set<WifiConnectionData> connections = mDataManager.getConnectionsForScan(scan);
+				WifiScanActor actor = new WifiScanActor(scan);
 				mScanActors.put(scan.getId(), actor);
 				mGraphicsView.createRendererForActor(actor);
 			}
@@ -113,30 +115,21 @@ public class MainEngineThread extends Thread {
 
 		for (WifiScan scan : mScans) {
 			Set<WifiConnectionData> connections = mDataManager.getConnectionsForScan(scan);
-			addWifiPointsFromConnections(connections);
+			createWifiPointActorsFromConnections(connections);
 			mScanActors.get(scan.getId()).createForceConnections(this);
 		}
 	}
 
-	private void addWifiPointsFromConnections(Set<WifiConnectionData> connections) {
+	private void createWifiPointActorsFromConnections(Set<WifiConnectionData> connections) {
 		if (DEBUG) Log.d(TAG, "addWifiPointsFromConnections() count " + connections.size());
 		for (WifiConnectionData connection : connections) {
 			WifiPoint point = connection.getPoint();
+
+			// create actors for points, if they don't already exist
 			if (mPointActors.get(point.getId()) == null) {
-				Set<WifiConnectionData> scanConnections = mDataManager.getConnectionsForPoint(point);
-				WifiPointActor actor = new WifiPointActor(point, scanConnections, this);
+				WifiPointActor actor = new WifiPointActor(point, this);
 				mPointActors.put(point.getId(), actor);
 				mGraphicsView.createRendererForActor(actor);
-				actor.createForceConnections(this);
-			} else {
-				mPointActors.get(point.getId()).createForceConnections(this);
-				List<WifiScan> scanConnections = mDataManager.getScansForPoint(point);
-				for (WifiScan scan : scanConnections) {
-					WifiScanActor scanActor = mScanActors.get(scan.getId());
-					if (scanActor != null) {
-						scanActor.createForceConnections(this);
-					}
-				}
 			}
 		}
 	}
@@ -152,21 +145,27 @@ public class MainEngineThread extends Thread {
 		return mPointActors.get(id);
 	}
 
-	// TODO: the reciprocal connection between new scans an points and 
-	// with existing scans and points needs to be resolved correctly -
-	// this doesn't work as desired :/
 	public void addSingleScan(WifiScan scan) {
 		if (mScanActors.get(scan.getId()) == null) {
-			Set<WifiConnectionData> connections = mDataManager.getConnectionsForScan(scan);
-			WifiScanActor actor = new WifiScanActor(scan, connections);
+			// create actor for scan if scan doesn't already exist
+			WifiScanActor actor = new WifiScanActor(scan);
 			mScanActors.put(scan.getId(), actor);
 			mGraphicsView.createRendererForActor(actor);
+
+			Set<WifiConnectionData> connections = mDataManager.getConnectionsForScan(scan);
 			
 			// create points
-			addWifiPointsFromConnections(connections);
-			actor.createForceConnections(this);
+			createWifiPointActorsFromConnections(connections);
+			
+			// look to establish all connections from scan to points
+			for (WifiConnectionData connection : connections) {
+				WifiPointActor pointActor = mPointActors.get(connection.getPoint().getId());
+				if (pointActor != null) {
+					actor.addForceSource(pointActor, connection.getLevel());
+					pointActor.addForceSource(actor, connection.getLevel());
+				}
+			}
 		}
-		
 	}
 
 }

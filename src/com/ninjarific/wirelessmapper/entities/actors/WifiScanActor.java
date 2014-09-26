@@ -1,5 +1,6 @@
 package com.ninjarific.wirelessmapper.entities.actors;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import android.graphics.PointF;
@@ -18,16 +19,24 @@ public class WifiScanActor extends MovableActor {
 	private String mName;
 	private Long mId;
 
-	public WifiScanActor(WifiScan scan, Set<WifiConnectionData> connections) {
+	public WifiScanActor(WifiScan scan) {
 		super(new PointF(0,0), true);
 		if (DEBUG) Log.d(TAG, "created");
-		mScanConnections = connections;
+		mScanConnections = new HashSet<WifiConnectionData>();
 		mId = scan.getId();
 		this.setMass(100);
 	}
 	
 	public String getActorLabel() {
 		return mId.toString();
+	}
+	
+	public void addConnections(Set<WifiConnectionData> connections) {
+		mScanConnections.addAll(connections);
+	}
+	
+	public void addConnections(WifiConnectionData connection) {
+		mScanConnections.add(connection);
 	}
 
 	public void createForceConnections(MainEngineThread mainEngineThread) {
