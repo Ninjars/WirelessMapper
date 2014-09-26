@@ -23,31 +23,20 @@ public class WifiPointActor extends MovableActor {
 		mScanConnections = scanConnections;
 		mName = point.getSsid();
 		mId = point.getId();
-
-		if (DEBUG) Log.d(TAG, "created WifiPointActor " + mId + " " + mName);
-//		if (mScanConnections.size() == 1) {
-//			if (DEBUG) Log.d(TAG, "\t single connection; set to ORBIT mode at radius " + mScanConnections.get(0));
-//			setOrbitRadius(mScanConnections.get(0).getLevel());
-//			setPosition(mainEngineThread
-//					.getScanActorById(mScanConnections
-//							.get(0)
-//							.getScan()
-//							.getId())
-//					.getPosition());
-//			setMode(Mode.ORBIT);
-//		}
-//		else {
-			if (DEBUG) Log.d(TAG, "\t " + mScanConnections.size() + " connections found, standard mode");
-			for (WifiConnectionData connection : mScanConnections) {
-				WifiScanActor targetActor = mainEngineThread.getScanActorById(connection.getScan().getId());
-				this.addForceSource(targetActor, connection.getLevel());
-			}
-//		}
 			
 	}
 
 	public String getActorLabel() {
 		return mId.toString();
+	}
+
+	public void createForceConnections(MainEngineThread mainEngineThread) {
+		for (WifiConnectionData connection : mScanConnections) {
+			WifiScanActor targetActor = mainEngineThread.getScanActorById(connection.getPoint().getId());
+			if (targetActor != null) {
+				this.addForceSource(targetActor, connection.getLevel());
+			}
+		}
 	}
 	
 }

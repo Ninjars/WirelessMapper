@@ -1,6 +1,7 @@
 package com.ninjarific.wirelessmapper.engine;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import android.graphics.Canvas;
@@ -113,7 +114,7 @@ public class MainEngineThread extends Thread {
 		for (WifiScan scan : mScans) {
 			Set<WifiConnectionData> connections = mDataManager.getConnectionsForScan(scan);
 			addWifiPointsFromConnections(connections);
-			mScanActors.get(scan.getId()).loadPointConnections(this);
+			mScanActors.get(scan.getId()).createForceConnections(this);
 		}
 	}
 
@@ -126,6 +127,16 @@ public class MainEngineThread extends Thread {
 				WifiPointActor actor = new WifiPointActor(point, scanConnections, this);
 				mPointActors.put(point.getId(), actor);
 				mGraphicsView.createRendererForActor(actor);
+				actor.createForceConnections(this);
+			} else {
+				mPointActors.get(point.getId()).createForceConnections(this);
+				List<WifiScan> scanConnections = mDataManager.getScansForPoint(point);
+				for (WifiScan scan : scanConnections) {
+					WifiScanActor scanActor = mScanActors.get(scan.getId());
+					if (scanActor != null) {
+						scanActor.createForceConnections(this);
+					}
+				}
 			}
 		}
 	}
@@ -139,6 +150,23 @@ public class MainEngineThread extends Thread {
 	public WifiPointActor getPointActorById(long id) {
 		if (DEBUG) Log.d(TAG, "getPointActorById() " + id);
 		return mPointActors.get(id);
+	}
+
+	// TODO: the reciprocal connection between new scans an points and 
+	// with existing scans and points needs to be resolved correctly -
+	// this doesn't work as desired :/
+	public void addSingleScan(WifiScan scan) {
+		if (mScanActors.get(scan.getId()) == null) {
+			Set<WifiConnectionData> connections = mDataManager.getConnectionsForScan(scan);
+			WifiScanActor actor = new WifiScanActor(scan, connections);
+			mScanActors.put(scan.getId(), actor);
+			mGraphicsView.createRendererForActor(actor);
+			
+			// create points
+			addWifiPointsFromConnections(connections);
+			actor.createForceConnections(this);
+		}
+		
 	}
 
 }

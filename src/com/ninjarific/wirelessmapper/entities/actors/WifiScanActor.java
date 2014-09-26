@@ -30,10 +30,12 @@ public class WifiScanActor extends MovableActor {
 		return mId.toString();
 	}
 
-	public void loadPointConnections(MainEngineThread mainEngineThread) {
+	public void createForceConnections(MainEngineThread mainEngineThread) {
 		for (WifiConnectionData connection : mScanConnections) {
 			WifiPointActor targetActor = mainEngineThread.getPointActorById(connection.getPoint().getId());
-			this.addForceSource(targetActor, connection.getLevel());
+			if (targetActor != null) {
+				this.addForceSource(targetActor, connection.getLevel());
+			}
 		}
 	}
 	
