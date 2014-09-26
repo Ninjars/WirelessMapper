@@ -1,6 +1,7 @@
 package com.ninjarific.wirelessmapper.entities.actors;
 
-import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 import android.graphics.PointF;
 import android.os.SystemClock;
@@ -30,10 +31,10 @@ public class MovableActor extends RootActor {
 	protected Mode mMode = Mode.STANDARD;
 	protected long mOrbitStartTime;
 	private int mOrbitRadius;
-	private ArrayList<ForceSource> mForceSources;
+	private Set<ForceSource> mForceSources;
 	private double mMass = 1;
 	private boolean mForceSourcesLocked;
-	private ArrayList<ForceSource> mForceSourcesToAdd;
+	private Set<ForceSource> mForceSourcesToAdd;
 	
 	enum Mode {
 		ORBIT,
@@ -62,8 +63,8 @@ public class MovableActor extends RootActor {
 		mVelocity = new PointF();
 		mAcceleration = new PointF();
 		mLastActive = SystemClock.elapsedRealtime();
-		mForceSources = new ArrayList<ForceSource>();
-		mForceSourcesToAdd = new ArrayList<ForceSource>();
+		mForceSources = new HashSet<ForceSource>();
+		mForceSourcesToAdd = new HashSet<ForceSource>();
 		if (DEBUG) Log.d(TAG, "isActive on startup " + mIsActive);
 	}
 	
@@ -109,6 +110,32 @@ public class MovableActor extends RootActor {
 		public void activate() {
 			mActor.activate();
 		}
+		
+		public MovableActor getActor() {
+			return mActor;
+		}
+		
+		public double getTargetDistance() {
+			return mTargetDistanceSquared;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			return (o instanceof ForceSource
+					&& mActor.equals(((ForceSource) o).getActor())
+					&& mTargetDistanceSquared == ((ForceSource) o).getTargetDistance());
+		}
+
+		@Override
+		public int hashCode() {
+			int hash = 13;
+			hash += this.getClass().hashCode();
+			hash += mActor.hashCode();
+			hash += mTargetDistanceSquared;
+			return hash;
+		}
+		
+		
 	}
 	
 	public void setPosition(PointF newPos) {
