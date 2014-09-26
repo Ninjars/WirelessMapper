@@ -19,6 +19,7 @@ import android.view.View.OnTouchListener;
 import com.ninjarific.wirelessmapper.MainActivity;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiScan;
 import com.ninjarific.wirelessmapper.engine.MainEngineThread;
+import com.ninjarific.wirelessmapper.engine.tasks.AddScansTask;
 import com.ninjarific.wirelessmapper.entities.actors.RootActor;
 import com.ninjarific.wirelessmapper.entities.actors.WifiPointActor;
 import com.ninjarific.wirelessmapper.entities.actors.WifiScanActor;
@@ -142,7 +143,9 @@ public class GraphicsView extends SurfaceView implements OnTouchListener {
         }
         
         if (mWifiScanToAdd != null) {
-        	mEngine.addWifiScans(mWifiScanToAdd);
+			AddScansTask task = new AddScansTask(mEngine, mWifiScanToAdd);
+			task.execute();
+//        	mEngine.addWifiScans(mWifiScanToAdd);
         }
 
 	 	// we have a pointer to the activity for call backs and managers,
@@ -186,7 +189,9 @@ public class GraphicsView extends SurfaceView implements OnTouchListener {
 	
 	public void addWifiScans(ArrayList<WifiScan> mScans) {
 		if (mEngine != null) {
-			mEngine.addWifiScans(mScans);
+			AddScansTask task = new AddScansTask(mEngine, mScans);
+			task.execute();
+//			mEngine.addWifiScans(mScans);
 		} else {
 			mWifiScanToAdd = mScans;
 		}

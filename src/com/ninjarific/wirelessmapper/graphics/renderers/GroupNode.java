@@ -7,10 +7,15 @@ import android.graphics.PointF;
 
 public class GroupNode extends GraphNode {
 	private ArrayList<GraphNode> mChildNodes;
+	private ArrayList<GraphNode> mNodesToAdd;
+	private ArrayList<GraphNode> mNodesToRemove;
 	protected PointF mTranslation;
+	private boolean mLockedForDraw;
 	
 	public GroupNode() {
 		mChildNodes = new ArrayList<GraphNode>();
+		mNodesToAdd = new ArrayList<GraphNode>();
+		mNodesToRemove = new ArrayList<GraphNode>();
 		mTranslation = new PointF(0,0);
 	}
 	
@@ -23,6 +28,10 @@ public class GroupNode extends GraphNode {
 	}
 	
 	public void addChild(GraphNode child) {
+		if (mLockedForDraw) {
+			mNodesToAdd.add(child);
+			return;
+		}
 		mChildNodes.add(child);
 	}
 	
@@ -31,6 +40,11 @@ public class GroupNode extends GraphNode {
 	 * in this group's hierarchy and removes it.
 	 */
 	public boolean removeChild(GraphNode child) {
+		if (mLockedForDraw) {
+			mNodesToRemove.add(child);
+			return true;
+		}
+		
 		if (mChildNodes.contains(child)) {
 			mChildNodes.remove(child);
 			return true;
@@ -56,9 +70,21 @@ public class GroupNode extends GraphNode {
 		c.save();
 		c.translate(mTranslation.x, mTranslation.y);
 		
+		mLockedForDraw = true;
 		for (GraphNode node : mChildNodes) {
 			node.draw(c);
 		}
+		mLockedForDraw = false;
+		
+		for (GraphNode node : mNodesToAdd) {
+			addChild(node);
+		}
+		mNodesToAdd.clear();
+		for (GraphNode node : mNodesToRemove) {
+			removeChild(node);
+		}
+		mNodesToRemove.clear();
+		
 		c.restore();
 	}
 	

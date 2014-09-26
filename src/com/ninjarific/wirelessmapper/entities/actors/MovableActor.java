@@ -32,6 +32,8 @@ public class MovableActor extends RootActor {
 	private int mOrbitRadius;
 	private ArrayList<ForceSource> mForceSources;
 	private double mMass = 1;
+	private boolean mForceSourcesLocked;
+	private ArrayList<ForceSource> mForceSourcesToAdd;
 	
 	enum Mode {
 		ORBIT,
@@ -61,6 +63,7 @@ public class MovableActor extends RootActor {
 		mAcceleration = new PointF();
 		mLastActive = SystemClock.elapsedRealtime();
 		mForceSources = new ArrayList<ForceSource>();
+		mForceSourcesToAdd = new ArrayList<ForceSource>();
 		if (DEBUG) Log.d(TAG, "isActive on startup " + mIsActive);
 	}
 	
@@ -129,7 +132,11 @@ public class MovableActor extends RootActor {
 	
 	public void addForceSource(MovableActor actor, double targetDistance) {
 		if (actor != null) {
-			mForceSources.add(new ForceSource(actor, targetDistance));
+			if (mForceSourcesLocked) {
+				mForceSourcesToAdd.add(new ForceSource(actor, targetDistance));
+			} else {
+				mForceSources.add(new ForceSource(actor, targetDistance));
+			}
 		} else {
 			Log.w(TAG, "addForceSource() passed null actor");
 		}
@@ -173,6 +180,7 @@ public class MovableActor extends RootActor {
 	
 	private void calculateCurrentAcceleration() {
 		mAcceleration.set(0,0);
+		mForceSourcesLocked = true;
 		for (ForceSource source : mForceSources) {
 			PointF sourceAccel = source.getAcceleration(mPosition);
 			mAcceleration.x += sourceAccel.x;
@@ -181,13 +189,21 @@ public class MovableActor extends RootActor {
 		if (mAcceleration.x*mAcceleration.x > cForceActivateThreashold ||mAcceleration.y*mAcceleration.y > cForceActivateThreashold){
 			awakenConnectedForceSources();
 		}
+		mForceSourcesLocked = false;
+		onForceSourcesUnlocked();
 	}
 
 	private void awakenConnectedForceSources() {
 		for (ForceSource fs : mForceSources) {
 			fs.activate();
 		}
-		
+	}
+	
+	private void onForceSourcesUnlocked() {
+		for (ForceSource s : mForceSourcesToAdd) {
+			mForceSources.add(s);
+		}
+		mForceSourcesToAdd.clear();
 	}
 
 	private void updateVelocity(double deltaSeconds) {
