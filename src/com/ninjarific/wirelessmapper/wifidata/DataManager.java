@@ -3,6 +3,7 @@ package com.ninjarific.wirelessmapper.wifidata;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -45,9 +46,6 @@ public class DataManager {
 		// Wifi linkup
 		mWifiManager = (WifiManager) mMainActivity.getSystemService(Context.WIFI_SERVICE);
 		
-		// turn on wifi if it is off
-		enableWifi();
-		
 		// register to receive broadcast events from wifiManager system
 		
 		mBroadCastReceiver = new BroadcastReceiver() {			
@@ -68,20 +66,21 @@ public class DataManager {
 		mMainActivity.registerReceiver(mBroadCastReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));	
 	}
 	
-	private void enableWifi() {
+	private void toggleWifi() {
 		if (mWifiManager.isWifiEnabled() == false) {
 			if (DEBUG) Log.i(TAG, "Enabling WiFi");
-			mMainActivity.showToastMessage("Enabling WiFi");
 			
 		    mWifiManager.setWifiEnabled(true);
 		} else {
 			if (DEBUG) Log.d(TAG, "Wifi already enabled");
+		    mWifiManager.setWifiEnabled(false);
+		    mWifiManager.setWifiEnabled(true);
 		}
 	}
 	
 	public void startScan() {
 		if (DEBUG) Log.i(TAG, "startScan()");
-		enableWifi();
+		toggleWifi();
 		mMainActivity.showToastMessage("Scanning");
 		mWifiManager.startScan();
 	}
@@ -163,7 +162,7 @@ public class DataManager {
 				// sufficient, just add the new points to the matching scan
 				if (!newPoints.isEmpty()) {
 					if (DEBUG) Log.i(TAG, "\t matching scan found; adding new point connections to found scan");
-					mMainActivity.showToastMessage("appending to old scan");
+					mMainActivity.showToastMessage("appending " + newPoints.size() + " to old scan");
 					addPointsForScan(scan, existingPoints, newPoints, false);
 				} else {
 					if (DEBUG) Log.i(TAG, "\t matching scan found; no new points to add");
@@ -584,7 +583,7 @@ public class DataManager {
 	}
 
 	public ArrayList<WifiScan> getAllScansConnectedToScan(WifiScan scan) {
-		HashSet<WifiScan> connectedScans = new HashSet<WifiScan>();
+		LinkedHashSet<WifiScan> connectedScans = new LinkedHashSet<WifiScan>();
 		connectedScans.add(scan);
 		
 		int lastSize = 0;
