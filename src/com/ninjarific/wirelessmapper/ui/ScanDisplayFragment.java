@@ -60,6 +60,7 @@ public class ScanDisplayFragment extends RootFragment {
 		super.onResume();
 		if (DEBUG) Log.i(TAG, "onResume()");
 		if (mScans != null) {
+			mActivity.showToastMessage("loading " + mScans.size() + " scans");
 			mGraphicsView.addWifiScans(mScans);
 			mScans = null;
 		}
