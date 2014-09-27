@@ -166,12 +166,16 @@ public class MovableActor extends RootActor {
 		mVelocity = velocity;
 	}
 	
-	public void addForceSource(MovableActor actor, double targetDistance) {
+	public void addForceSource(MovableActor actor, double targetDistance, boolean addMass) {
 		if (actor != null) {
+			ForceSource fs = new ForceSource(actor, targetDistance);
+			if (addMass && !mForceSources.contains(fs)) {
+				addMass(actor.getMass());
+			}
 			if (mForceSourcesLocked) {
-				mForceSourcesToAdd.add(new ForceSource(actor, targetDistance));
+				mForceSourcesToAdd.add(fs);
 			} else {
-				mForceSources.add(new ForceSource(actor, targetDistance));
+				mForceSources.add(fs);
 			}
 		} else {
 			Log.w(TAG, "addForceSource() passed null actor");
@@ -191,6 +195,14 @@ public class MovableActor extends RootActor {
 	
 	protected void setMass(double mass) {
 		mMass = mass;
+	}
+	
+	private void addMass(double mass) {
+		mMass += mass;
+	}
+	
+	public double getMass() {
+		return mMass;
 	}
 	
 	public void activate() {

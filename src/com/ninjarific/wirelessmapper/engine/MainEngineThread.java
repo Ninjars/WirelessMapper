@@ -161,8 +161,8 @@ public class MainEngineThread extends Thread {
 			for (WifiConnectionData connection : connections) {
 				WifiPointActor pointActor = mPointActors.get(connection.getPoint().getId());
 				if (pointActor != null) {
-					actor.addForceSource(pointActor, connection.getLevel());
-					pointActor.addForceSource(actor, connection.getLevel());
+					actor.addForceSource(pointActor, connection.getLevel(), true);
+					pointActor.addForceSource(actor, connection.getLevel(), false);
 				}
 			}
 		}

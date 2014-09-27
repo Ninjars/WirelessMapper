@@ -24,7 +24,7 @@ public class WifiScanActor extends MovableActor {
 		if (DEBUG) Log.d(TAG, "created");
 		mScanConnections = new HashSet<WifiConnectionData>();
 		mId = scan.getId();
-		this.setMass(100);
+		this.setMass(50);
 	}
 	
 	public String getActorLabel() {
@@ -43,7 +43,7 @@ public class WifiScanActor extends MovableActor {
 		for (WifiConnectionData connection : mScanConnections) {
 			WifiPointActor targetActor = mainEngineThread.getPointActorById(connection.getPoint().getId());
 			if (targetActor != null) {
-				this.addForceSource(targetActor, connection.getLevel());
+				this.addForceSource(targetActor, connection.getLevel(), true);
 			}
 		}
 	}

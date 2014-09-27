@@ -4,7 +4,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import android.graphics.PointF;
-import android.util.Log;
 
 import com.ninjarific.wirelessmapper.database.orm.models.WifiConnectionData;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiPoint;
@@ -44,7 +43,7 @@ public class WifiPointActor extends MovableActor {
 		for (WifiConnectionData connection : mScanConnections) {
 			WifiScanActor targetActor = mainEngineThread.getScanActorById(connection.getPoint().getId());
 			if (targetActor != null) {
-				this.addForceSource(targetActor, connection.getLevel());
+				this.addForceSource(targetActor, connection.getLevel(), false);
 			}
 		}
 	}
