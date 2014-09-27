@@ -168,4 +168,8 @@ public class MainEngineThread extends Thread {
 		}
 	}
 
+	public boolean isRunning() {
+		return mIsRunning;
+	}
+
 }

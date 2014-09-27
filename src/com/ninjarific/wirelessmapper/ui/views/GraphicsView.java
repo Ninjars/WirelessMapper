@@ -103,7 +103,7 @@ public class GraphicsView extends SurfaceView implements OnTouchListener {
 		if (DEBUG) Log.d(TAG, "onSurfaceCreated()");
 	 	// this is when view dimensions can be called on and things can get rolling
     	mSurfaceReady = true;
-    	if (mEngineStartCalled) {
+    	if (mEngineStartCalled && !mEngine.isRunning()) {
  			mEngine.setRunning(true);
     		mEngine.start();
     	}
