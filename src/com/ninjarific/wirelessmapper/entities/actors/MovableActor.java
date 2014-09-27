@@ -17,7 +17,9 @@ public class MovableActor extends RootActor {
 	private static final long cInactiveMsCutoff = 1500; // time before an almost stationary object stops itself
 	private static final double cInactiveDistanceCutoff = 0.001;
 	private static final double cMaxDistanceForForce = 150 * 150;
-	private static final double cFrictionConstant = 0.6;
+	private static final double cBaseFrictionConstant = 0.2; // 1 is no friction, 0 means no movement possible
+	private static final double cVariableFrictionConstant = 0.7; // max reduction in friction as distance changes
+	private static final double cMaxDistanceForFrictionVariance = 100*100; // distance at which ceases to change
 	private static final double cForceActivateThreashold = 200*200;
 	
 	private final double cOrbitalVelocity = 0.3 + (0.3 * Math.random());
@@ -35,6 +37,7 @@ public class MovableActor extends RootActor {
 	private double mMass = 1;
 	private boolean mForceSourcesLocked;
 	private Set<ForceSource> mForceSourcesToAdd;
+	private double mBestDistance;
 	
 	enum Mode {
 		ORBIT,
@@ -72,22 +75,24 @@ public class MovableActor extends RootActor {
 		private MovableActor mActor;
 		private double mTargetDistanceSquared;
 		private PointF mCachedAccel;
+		private double mDeltaDistance;
 
 		public ForceSource(MovableActor actor, double targetDistance) {
 			mActor = actor;
 			mTargetDistanceSquared = 10 * targetDistance * targetDistance;
 			mCachedAccel = new PointF();
+			mDeltaDistance = cMaxDistanceForFrictionVariance;
 		}
 		
 		public PointF getAcceleration(PointF position) {
 			PointF actorPos = mActor.getPosition();
 			double distanceSquared = MathUtils.getSquareDistanceBetweenPoints(position, actorPos);
-			double deltaDistance = distanceSquared - mTargetDistanceSquared;
+			mDeltaDistance = distanceSquared - mTargetDistanceSquared;
 			
 			// treat distance squared as basically the force we will be applying
 			// f.x + f.y = deltaDistance
 			// cap at a max value
-			deltaDistance = Math.min(Math.max(deltaDistance, -cMaxDistanceForForce), cMaxDistanceForForce);
+			mDeltaDistance = Math.min(Math.max(mDeltaDistance, -cMaxDistanceForForce), cMaxDistanceForForce);
 			double dx = actorPos.x - position.x;
 			double dy = actorPos.y - position.y;
 			
@@ -100,8 +105,8 @@ public class MovableActor extends RootActor {
 			double mag = Math.sqrt(dx * dx + dy * dy);
 			
 			
-			float fx = (float) ((dx / mag * deltaDistance) / mMass);
-			float fy = (float) ((dy / mag * deltaDistance) / mMass);
+			float fx = (float) ((dx / mag * mDeltaDistance) / mMass);
+			float fy = (float) ((dy / mag * mDeltaDistance) / mMass);
 			
 			mCachedAccel.set(fx, fy);
 			return mCachedAccel;
@@ -117,6 +122,10 @@ public class MovableActor extends RootActor {
 		
 		public double getTargetDistance() {
 			return mTargetDistanceSquared;
+		}
+		
+		public double getDeltaDistance() {
+			return mDeltaDistance;
 		}
 
 		@Override
@@ -208,10 +217,14 @@ public class MovableActor extends RootActor {
 	private void calculateCurrentAcceleration() {
 		mAcceleration.set(0,0);
 		mForceSourcesLocked = true;
+		mBestDistance = cMaxDistanceForFrictionVariance;
 		for (ForceSource source : mForceSources) {
 			PointF sourceAccel = source.getAcceleration(mPosition);
 			mAcceleration.x += sourceAccel.x;
 			mAcceleration.y += sourceAccel.y;
+			if (Math.abs(source.getDeltaDistance()) < mBestDistance) {
+				mBestDistance = Math.abs(source.getDeltaDistance());
+			}
 		}
 		if (mAcceleration.x*mAcceleration.x > cForceActivateThreashold ||mAcceleration.y*mAcceleration.y > cForceActivateThreashold){
 			awakenConnectedForceSources();
@@ -236,8 +249,9 @@ public class MovableActor extends RootActor {
 	private void updateVelocity(double deltaSeconds) {
 		switch (mMode) {
 			case STANDARD: {
-				mVelocity.x = (float) ((mVelocity.x + mAcceleration.x * deltaSeconds) * cFrictionConstant);
-				mVelocity.y = (float) ((mVelocity.y + mAcceleration.y * deltaSeconds) * cFrictionConstant);
+				double friction = cBaseFrictionConstant + ((mBestDistance / cMaxDistanceForFrictionVariance) * cVariableFrictionConstant);
+				mVelocity.x = (float) ((mVelocity.x + mAcceleration.x * deltaSeconds) * friction);
+				mVelocity.y = (float) ((mVelocity.y + mAcceleration.y * deltaSeconds) * friction);
 				break;
 			}
 			case ORBIT: {
