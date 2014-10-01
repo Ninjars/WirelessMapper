@@ -37,6 +37,8 @@ public class DataManager {
 	private BroadcastReceiver mBroadCastReceiver;
 
 	private WifiManager mWifiManager;
+	private boolean mScanPending;
+	private boolean mScanRequestSent;
 	
 	public DataManager(MainActivity activity) {
 		mMainActivity = activity;
@@ -51,11 +53,32 @@ public class DataManager {
 		mBroadCastReceiver = new BroadcastReceiver() {			
         	@Override
             public void onReceive(Context c, Intent intent) {
-        		if (DEBUG) Log.i(TAG, "onReceive() broadcast intent");
-        		DataManager.this.onScanResults(mWifiManager.getScanResults());
+        		if (DEBUG) Log.i(TAG, "onReceive() broadcast intent " + intent.getAction());
+        		final String action = intent.getAction();
+        		if (action.equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
+        			DataManager.this.onScanResults(mWifiManager.getScanResults());
+        		}
+        		if (action.equals(WifiManager.WIFI_STATE_CHANGED_ACTION)) {
+        			DataManager.this.onReceiveStateChange(intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE, WifiManager.WIFI_STATE_UNKNOWN));
+        		}
             }
         };
         mMainActivity.registerReceiver(mBroadCastReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+        mMainActivity.registerReceiver(mBroadCastReceiver, new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION));
+	}
+
+	protected void onReceiveStateChange(int intExtra) {
+		if (DEBUG) Log.i(TAG, "onReceiveStateChange() " + intExtra);
+		switch (intExtra) {
+		case WifiManager.WIFI_STATE_ENABLED:
+			if (DEBUG) Log.d(TAG, "\t WIFI_STATE_ENABLED");
+			if (mScanPending) {
+				if (DEBUG) Log.d(TAG, "\t start scan");
+				startScan();
+			}
+			break;
+		}
+		
 	}
 
 	public void onStop() {
@@ -71,6 +94,7 @@ public class DataManager {
 			if (DEBUG) Log.i(TAG, "Enabling WiFi");
 			
 		    mWifiManager.setWifiEnabled(true);
+			mMainActivity.registerReceiver(mBroadCastReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));	
 		} else {
 			if (DEBUG) Log.d(TAG, "Wifi already enabled");
 		    mWifiManager.setWifiEnabled(false);
@@ -80,9 +104,19 @@ public class DataManager {
 	
 	public void startScan() {
 		if (DEBUG) Log.i(TAG, "startScan()");
-		toggleWifi();
-		mMainActivity.showToastMessage("Scanning");
-		mWifiManager.startScan();
+		if (mScanPending) {
+			if (!mScanRequestSent) {
+				mMainActivity.showToastMessage("Scanning");
+				mWifiManager.startScan();
+				mScanRequestSent = true;
+			} else {
+				mMainActivity.showToastMessage("Scan already pending");
+			}
+		} else {
+			mMainActivity.showToastMessage("resetting wifi");
+			toggleWifi();
+			mScanPending = true;
+		}
 	}
 	
 //	public void clearDatabase() {		
@@ -93,10 +127,17 @@ public class DataManager {
 //	}
 
 	private void onScanResults(List<ScanResult> scanResults) {
-		if (DEBUG) Log.i(TAG, "onScanResults() count " + scanResults.size());
-		WifiScan scan = checkForScanMerge(scanResults);
-		
-    	mMainActivity.onScanResult(scan);
+		if (mScanRequestSent) {
+			if (DEBUG) Log.i(TAG, "onScanResults() count " + scanResults.size());
+			WifiScan scan = checkForScanMerge(scanResults);
+			
+	    	mMainActivity.onScanResult(scan);
+	    	mScanRequestSent = false;
+	    	mScanPending = false;
+    	
+		} else {
+			Log.i(TAG, "ignoring system scan");
+		}
 	}
 	
 	private WifiScan checkForScanMerge(List<ScanResult> scanResults) {
@@ -120,6 +161,12 @@ public class DataManager {
 				if (DEBUG) Log.d(TAG, "\t ignoring scan result " + result.SSID + ": level below threashold (" + -result.level + ")");
 				continue;
 			}
+			
+			if (result.SSID == "" || result.BSSID == "") {
+				if (DEBUG) Log.d(TAG, "\t ignoring scan result with empty SSID or BSSID");
+				continue;
+			}
+			
 			if (DEBUG) Log.d(TAG, "\t checking scan result " + result.SSID);
 			
 			List<WifiPoint> matchingPoints = lookupInstancesOfWifiPoint(result.SSID, result.BSSID);

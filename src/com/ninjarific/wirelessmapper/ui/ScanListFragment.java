@@ -82,7 +82,6 @@ public class ScanListFragment extends RootFragment implements OnClickListener, S
 	@Override
 	public void onScanResult(WifiScan scan) {
 		if (DEBUG) Log.i(TAG, "onScanResult()");
-		mActivity.removeScanListener(this);
 		mWifiScans = mDataManager.getAllWifiScanObjects();
 		Log.i(TAG, "datalist size: " + mWifiScans.size());
 		mListAdapter.clear();
