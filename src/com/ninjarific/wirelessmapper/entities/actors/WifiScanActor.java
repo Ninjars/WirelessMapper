@@ -20,11 +20,10 @@ public class WifiScanActor extends MovableActor {
 	private Long mId;
 
 	public WifiScanActor(WifiScan scan) {
-		super(new PointF(0,0), true);
+		super(new PointF(0,0), 50, true);
 		if (DEBUG) Log.d(TAG, "created");
 		mScanConnections = new HashSet<WifiConnectionData>();
 		mId = scan.getId();
-		this.setMass(50);
 	}
 	
 	public String getActorLabel() {

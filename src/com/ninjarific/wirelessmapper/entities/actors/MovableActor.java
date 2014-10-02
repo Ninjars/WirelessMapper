@@ -59,11 +59,12 @@ public class MovableActor extends RootActor {
 	 * and passed down to the point and scan actors to be resolved by the actors into their individual accelerations
 	 */
 
-	public MovableActor(PointF position, boolean isActive) {
+	public MovableActor(PointF position, double mass, boolean isActive) {
 		mPosition = position;
 		mLastPosition = new PointF(mPosition.x, mPosition.y);
 		mIsActive = isActive;
 		mVelocity = new PointF();
+		mMass = mass;
 		mAcceleration = new PointF();
 		mLastActive = SystemClock.elapsedRealtime();
 		mForceSources = new HashSet<ForceSource>();

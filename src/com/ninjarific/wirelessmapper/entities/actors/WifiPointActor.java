@@ -19,11 +19,10 @@ public class WifiPointActor extends MovableActor {
 	private Long mId;
 	
 	public WifiPointActor(WifiPoint point, MainEngineThread mainEngineThread) {
-		super(new PointF(0,0), true);
+		super(new PointF(0,0), 5, true);
 		mScanConnections = new HashSet<WifiConnectionData>();
 		mName = point.getSsid();
 		mId = point.getId();
-		setMass(5);
 			
 	}
 
