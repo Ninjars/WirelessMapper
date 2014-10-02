@@ -157,7 +157,7 @@ public class DataManager {
 
 		if (DEBUG) Log.i(TAG, "\t processing scan results");
 		for (ScanResult result : scanResults) {
-			if (-result.level < Constants.SCAN_CONNECTION_THREASHOLD) {
+			if (-result.level < Constants.SCAN_CONNECTION_THRESHOLD) {
 				if (DEBUG) Log.d(TAG, "\t ignoring scan result " + result.SSID + ": level below threashold (" + -result.level + ")");
 				continue;
 			}
@@ -269,6 +269,7 @@ public class DataManager {
 			Log.v(TAG, sb.toString());
 		}
 		
+		Set<WifiScan> matchingScans = new HashSet<WifiScan>();
 		for (WifiConnectionData connection : foundConnections) {
 			WifiScan testingScan = connection.getScan();
 			boolean scanIsValidForAllPoints = true;
@@ -294,11 +295,33 @@ public class DataManager {
 			
 			if (scanIsValidForAllPoints) {
 				if (DEBUG) Log.d(TAG, "\t scan matched for all point data");
-				return testingScan;
+				matchingScans.add(testingScan);
+			}
+		}
+		
+		// we now have a list of scans that could match.
+		// check how much the scans overlap by; if we see too few of the matching scans' 
+		// points, then make a new scan regardless
+		if (DEBUG) Log.d(TAG, "\t found " + matchingScans.size() + " matching scans");
+		for (WifiScan scan : matchingScans) {
+			double match = getFractionOverlap(points, lookupWifiPointForScan(scan));
+			if (DEBUG) Log.d(TAG, "\t match " + match + " for scan " + scan);
+			if (match > Constants.SCAN_MATCH_THRESHOLD) {
+				return scan;
 			}
 		}
 		
 		return null;
+	}
+
+	private double getFractionOverlap(List<WifiPoint> points, List<WifiPoint> matchingPoints) {
+		int count = 0;
+		for (WifiPoint point : matchingPoints) {
+			if (points.contains(point)) {
+				count ++;
+			}
+		}
+		return matchingPoints.size() / (double) count;
 	}
 
 	private void addPointsForScan(WifiScan scan, Set<WifiPoint> existingPoints, List<WifiPoint> newPoints, boolean isNewScan) {
