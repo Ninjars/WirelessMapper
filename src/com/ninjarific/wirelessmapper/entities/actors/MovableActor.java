@@ -18,7 +18,7 @@ public class MovableActor extends RootActor {
 	private static final double cInactiveDistanceCutoff = 0.001;
 	private static final double cMaxDistanceForForce = 150 * 150;
 	private static final double cBaseFrictionConstant = 0.2; // 1 is no friction, 0 means no movement possible
-	private static final double cVariableFrictionConstant = 0.7; // max reduction in friction as distance changes
+	private static final double cVariableFrictionConstant = 0.5; // max change in friction as distance changes
 	private static final double cMaxDistanceForFrictionVariance = 100*100; // distance at which ceases to change
 	private static final double cForceActivateThreashold = 200*200;
 	
@@ -249,10 +249,13 @@ public class MovableActor extends RootActor {
 			PointF sourceAccel = source.getAcceleration(mPosition);
 			mAcceleration.x += sourceAccel.x;
 			mAcceleration.y += sourceAccel.y;
+			
+			// TODO: don't do this, especially not here
 			if (Math.abs(source.getDeltaDistance()) < mBestDistance) {
 				mBestDistance = Math.abs(source.getDeltaDistance());
 			}
 		}
+		// TODO: work out a better way of reawakening force sources
 		if (mAcceleration.x*mAcceleration.x > cForceActivateThreashold ||mAcceleration.y*mAcceleration.y > cForceActivateThreashold){
 			awakenConnectedForceSources();
 		}
@@ -276,7 +279,7 @@ public class MovableActor extends RootActor {
 	private void updateVelocity(double deltaSeconds) {
 		switch (mMode) {
 			case STANDARD: {
-				double friction = cBaseFrictionConstant + ((mBestDistance / cMaxDistanceForFrictionVariance) * cVariableFrictionConstant);
+				double friction = calculateFriction();
 				mVelocity.x = (float) ((mVelocity.x + mAcceleration.x * deltaSeconds) * friction);
 				mVelocity.y = (float) ((mVelocity.y + mAcceleration.y * deltaSeconds) * friction);
 				break;
@@ -285,6 +288,19 @@ public class MovableActor extends RootActor {
 				break;
 			}
 		}
+	}
+	
+	private double calculateFriction() {
+		// TODO: 
+		// have a count of connections within a 'close enough' tolerance
+		// to desired position
+		// compare this count to total count of connections
+		// apply this fraction as a factor to the friction calculation:
+		// the closer we get to all nodes being in desired location,
+		// the closer friction tends to base friction constant
+		double friction = cBaseFrictionConstant + ((mBestDistance / cMaxDistanceForFrictionVariance) * cVariableFrictionConstant);
+		
+		return friction;
 	}
 
 	private void updatePosition(double deltaSeconds) {
