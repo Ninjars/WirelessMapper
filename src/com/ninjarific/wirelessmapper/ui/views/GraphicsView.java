@@ -39,7 +39,6 @@ public class GraphicsView extends SurfaceView implements OnTouchListener {
     private MainEngineThread mEngine;
 	private boolean mSurfaceReady;
 	private boolean mEngineStartCalled;
-	private MainActivity mMainActivity;
 
 	private GroupNode mRenderTree;
 	private ArrayList<WifiScan> mWifiScanToAdd;
@@ -135,7 +134,6 @@ public class GraphicsView extends SurfaceView implements OnTouchListener {
     
     public void startEngine(MainActivity activity) {
 		if (DEBUG) Log.d(TAG, "startEngine()");
-    	mMainActivity = activity;
         mEngine = new MainEngineThread(this, activity.getDataManager());
         mRenderTree = new GroupNode();
         if (mCenterTranslation != null) {
@@ -232,7 +230,6 @@ public class GraphicsView extends SurfaceView implements OnTouchListener {
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
         int index = event.getActionIndex();
-        int action = event.getActionMasked();
         int pointerId = event.getPointerId(index);
         
 		switch (event.getAction()) {
