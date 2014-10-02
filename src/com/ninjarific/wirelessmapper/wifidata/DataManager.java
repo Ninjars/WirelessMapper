@@ -37,8 +37,14 @@ public class DataManager {
 	private BroadcastReceiver mBroadCastReceiver;
 
 	private WifiManager mWifiManager;
-	private boolean mScanPending;
-	private boolean mScanRequestSent;
+	
+	private ScanState mScanState = ScanState.IDLE;
+	
+	private enum ScanState {
+		IDLE,
+		PENDING,
+		SCANNING
+	}
 	
 	public DataManager(MainActivity activity) {
 		mMainActivity = activity;
@@ -72,7 +78,7 @@ public class DataManager {
 		switch (intExtra) {
 		case WifiManager.WIFI_STATE_ENABLED:
 			if (DEBUG) Log.d(TAG, "\t WIFI_STATE_ENABLED");
-			if (mScanPending) {
+			if (mScanState == ScanState.PENDING) {
 				if (DEBUG) Log.d(TAG, "\t start scan");
 				startScan();
 			}
@@ -89,33 +95,47 @@ public class DataManager {
 		mMainActivity.registerReceiver(mBroadCastReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));	
 	}
 	
-	private void toggleWifi() {
+	private boolean checkWifi() {
 		if (mWifiManager.isWifiEnabled() == false) {
 			if (DEBUG) Log.i(TAG, "Enabling WiFi");
 			
 		    mWifiManager.setWifiEnabled(true);
-			mMainActivity.registerReceiver(mBroadCastReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));	
+			mMainActivity.registerReceiver(mBroadCastReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+			return false;
 		} else {
 			if (DEBUG) Log.d(TAG, "Wifi already enabled");
-		    mWifiManager.setWifiEnabled(false);
-		    mWifiManager.setWifiEnabled(true);
+			return true;
+//		    mWifiManager.setWifiEnabled(false);
+//		    mWifiManager.setWifiEnabled(true);
 		}
 	}
 	
 	public void startScan() {
 		if (DEBUG) Log.i(TAG, "startScan()");
-		if (mScanPending) {
-			if (!mScanRequestSent) {
-				mMainActivity.showToastMessage("Scanning");
-				mWifiManager.startScan();
-				mScanRequestSent = true;
-			} else {
-				mMainActivity.showToastMessage("Scan already pending");
-			}
-		} else {
-			mMainActivity.showToastMessage("resetting wifi");
-			toggleWifi();
-			mScanPending = true;
+		boolean readyToScan = checkWifi();
+		
+		switch (mScanState) {
+			case SCANNING: 
+				mMainActivity.showToastMessage("Scan already running");
+				break;
+				
+			case PENDING:
+				if (readyToScan) {
+					mMainActivity.showToastMessage("Scanning");
+					mWifiManager.startScan();
+					mScanState = ScanState.SCANNING;
+				}
+				break;
+				
+			case IDLE:
+				if (readyToScan) {
+					mMainActivity.showToastMessage("Scanning");
+					mWifiManager.startScan();
+					mScanState = ScanState.SCANNING;
+				} else {
+					mScanState = ScanState.PENDING;
+				}
+				break;
 		}
 	}
 	
@@ -127,13 +147,12 @@ public class DataManager {
 //	}
 
 	private void onScanResults(List<ScanResult> scanResults) {
-		if (mScanRequestSent) {
+		if (mScanState == ScanState.SCANNING) {
 			if (DEBUG) Log.i(TAG, "onScanResults() count " + scanResults.size());
 			WifiScan scan = checkForScanMerge(scanResults);
 			
 	    	mMainActivity.onScanResult(scan);
-	    	mScanRequestSent = false;
-	    	mScanPending = false;
+	    	mScanState = ScanState.IDLE;
     	
 		} else {
 			Log.i(TAG, "ignoring system scan");
