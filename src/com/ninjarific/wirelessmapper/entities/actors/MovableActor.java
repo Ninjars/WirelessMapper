@@ -63,13 +63,27 @@ public class MovableActor extends RootActor {
 		mPosition = position;
 		mLastPosition = new PointF(mPosition.x, mPosition.y);
 		mIsActive = isActive;
-		mVelocity = new PointF();
 		mMass = mass;
+		mVelocity = getRandomVelocity();
 		mAcceleration = new PointF();
 		mLastActive = SystemClock.elapsedRealtime();
 		mForceSources = new HashSet<ForceSource>();
 		mForceSourcesToAdd = new HashSet<ForceSource>();
 		if (DEBUG) Log.d(TAG, "isActive on startup " + mIsActive);
+	}
+	
+	private PointF getRandomVelocity() {
+		float dx = (float) (-10 + Math.random() * 20);
+		float dy = (float) (-10 + Math.random() * 20);
+		
+		// normalise
+		double mag = Math.sqrt(dx * dx + dy * dy);
+		
+		
+		float fx = (float) ((dx / mag * 1000) / mMass);
+		float fy = (float) ((dy / mag * 1000) / mMass);
+		
+		return new PointF(fx, fy);
 	}
 	
 	private class ForceSource {
