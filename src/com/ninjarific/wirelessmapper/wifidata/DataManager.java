@@ -78,10 +78,7 @@ public class DataManager {
 		switch (intExtra) {
 		case WifiManager.WIFI_STATE_ENABLED:
 			if (DEBUG) Log.d(TAG, "\t WIFI_STATE_ENABLED");
-			if (mScanState == ScanState.PENDING) {
-				if (DEBUG) Log.d(TAG, "\t start scan");
-				startScan();
-			}
+			onWifiReadyForScan();
 			break;
 		}
 		
@@ -95,47 +92,45 @@ public class DataManager {
 		mMainActivity.registerReceiver(mBroadCastReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));	
 	}
 	
-	private boolean checkWifi() {
+	private void toggleWifi() {
 		if (mWifiManager.isWifiEnabled() == false) {
 			if (DEBUG) Log.i(TAG, "Enabling WiFi");
-			
 		    mWifiManager.setWifiEnabled(true);
 			mMainActivity.registerReceiver(mBroadCastReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-			return false;
 		} else {
-			if (DEBUG) Log.d(TAG, "Wifi already enabled");
-			return true;
-//		    mWifiManager.setWifiEnabled(false);
-//		    mWifiManager.setWifiEnabled(true);
+			if (DEBUG) Log.d(TAG, "Toggling wifi");
+		    mWifiManager.setWifiEnabled(false);
+		    mWifiManager.setWifiEnabled(true);
 		}
 	}
 	
-	public void startScan() {
+	/*
+	 * call to prepare wifi adapter for scan
+	 */
+	public void initiateScan() {
 		if (DEBUG) Log.i(TAG, "startScan()");
-		boolean readyToScan = checkWifi();
-		
 		switch (mScanState) {
 			case SCANNING: 
 				mMainActivity.showToastMessage("Scan already running");
 				break;
 				
 			case PENDING:
-				if (readyToScan) {
-					mMainActivity.showToastMessage("Scanning");
-					mWifiManager.startScan();
-					mScanState = ScanState.SCANNING;
-				}
+				mMainActivity.showToastMessage("Waiting for wifi adapter");
 				break;
 				
 			case IDLE:
-				if (readyToScan) {
-					mMainActivity.showToastMessage("Scanning");
-					mWifiManager.startScan();
-					mScanState = ScanState.SCANNING;
-				} else {
-					mScanState = ScanState.PENDING;
-				}
+				toggleWifi();
+				mScanState = ScanState.PENDING;
 				break;
+		}
+	}
+	
+	private void onWifiReadyForScan() {
+		if (mScanState == ScanState.PENDING) {
+			if (DEBUG) Log.d(TAG, "\t start scan");
+			mMainActivity.showToastMessage("Scanning");
+			mWifiManager.startScan();
+			mScanState = ScanState.SCANNING;
 		}
 	}
 	

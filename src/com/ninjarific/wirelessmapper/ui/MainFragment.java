@@ -50,13 +50,13 @@ public class MainFragment extends RootFragment implements OnClickListener, ScanL
 	public void onClick(View view) {
 		if (view.equals(mScanButtonView)) {
 			if (DEBUG) Log.d(TAG, "onClick() on Scan button");
-			mActivity.getDataManager().startScan();
+			mActivity.getDataManager().initiateScan();
 		
 		} else if (view.equals(mConnectButtonView)) {
 			if (DEBUG) Log.d(TAG, "onClick() on Connect button");
 			// TODO: go to mapping view
 			mActivity.addScanListener(this);
-			mActivity.getDataManager().startScan();
+			mActivity.getDataManager().initiateScan();
 			
 		} else if (view.equals(mDataButtonView)) {
 			if (DEBUG) Log.d(TAG, "onClick() on Data button");

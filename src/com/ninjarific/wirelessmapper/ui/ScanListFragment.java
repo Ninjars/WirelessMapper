@@ -67,7 +67,7 @@ public class ScanListFragment extends RootFragment implements OnClickListener, S
 	    	if (view.getId() == R.id.buttonScan) {
 	    		if (DEBUG) Log.i(TAG, "Scan clicked");
 				mActivity.addScanListener(this);
-	    		mDataManager.startScan();
+	    		mDataManager.initiateScan();
 				return;
 	    	}
 //	    	if (view.getId() == R.id.buttonClear) {
