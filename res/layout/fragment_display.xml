@@ -4,7 +4,7 @@
     android:layout_height="match_parent" >
     
     <com.ninjarific.wirelessmapper.ui.views.GraphicsView
-        android:id="@+id/scan_display_graphics_view"
+        android:id="@+id/display_graphics_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         />

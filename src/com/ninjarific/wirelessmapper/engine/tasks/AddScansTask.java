@@ -6,15 +6,15 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.ninjarific.wirelessmapper.database.orm.models.WifiScan;
-import com.ninjarific.wirelessmapper.engine.MainEngineThread;
+import com.ninjarific.wirelessmapper.engine.GameController;
 
 public class AddScansTask extends AsyncTask<Void, Void, Void> {
 	private static final String TAG = "AddScansTask";
 
 	private ArrayList<WifiScan> mScans;
-	private MainEngineThread mEngine;
-	public AddScansTask(MainEngineThread engine, ArrayList<WifiScan> scans) {
-		mEngine = engine;
+	private GameController mController;
+	public AddScansTask(GameController controller, ArrayList<WifiScan> scans) {
+		mController = controller;
 		mScans = scans;
 	}
 	
@@ -22,11 +22,11 @@ public class AddScansTask extends AsyncTask<Void, Void, Void> {
 	protected Void doInBackground(Void... params) {
 		for (WifiScan scan : mScans) {
 			Log.i(TAG, "adding scan");
-			if (mEngine == null) {
+			if (mController == null) {
 				return null;
 			}
 			
-			mEngine.addSingleScan(scan);
+			mController.addSingleScan(scan);
 			try {
 				Thread.sleep(1500);
 			} catch (InterruptedException e) {

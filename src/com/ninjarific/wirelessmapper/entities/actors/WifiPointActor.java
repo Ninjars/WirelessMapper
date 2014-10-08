@@ -7,7 +7,7 @@ import android.graphics.PointF;
 
 import com.ninjarific.wirelessmapper.database.orm.models.WifiConnectionData;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiPoint;
-import com.ninjarific.wirelessmapper.engine.MainEngineThread;
+import com.ninjarific.wirelessmapper.engine.GameController;
 
 
 public class WifiPointActor extends MovableActor {
@@ -18,7 +18,7 @@ public class WifiPointActor extends MovableActor {
 	private String mName;
 	private Long mId;
 	
-	public WifiPointActor(WifiPoint point, MainEngineThread mainEngineThread) {
+	public WifiPointActor(WifiPoint point) {
 		super(new PointF(0,0), 5, true);
 		mScanConnections = new HashSet<WifiConnectionData>();
 		mName = point.getSsid();
@@ -38,9 +38,9 @@ public class WifiPointActor extends MovableActor {
 		mScanConnections.add(connection);
 	}
 
-	public void createForceConnections(MainEngineThread mainEngineThread) {
+	public void createForceConnections(GameController controller) {
 		for (WifiConnectionData connection : mScanConnections) {
-			WifiScanActor targetActor = mainEngineThread.getScanActorById(connection.getPoint().getId());
+			WifiScanActor targetActor = controller.getScanActorById(connection.getPoint().getId());
 			if (targetActor != null) {
 				this.addForceSource(targetActor, connection.getLevel(), false);
 			}

@@ -97,7 +97,7 @@ public class ScanListFragment extends RootFragment implements OnClickListener, S
 //		PointsListFragment frag = new PointsListFragment();
 //		frag.setInfo(points);
 		
-		ScanDisplayFragment frag = new ScanDisplayFragment();
+		GraphicsFragment frag = new GraphicsFragment();
 		frag.addScans(mDataManager.getAllScansConnectedToScan(item));
 
 		mActivity.setContentFragment(frag, true);

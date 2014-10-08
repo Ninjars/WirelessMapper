@@ -71,7 +71,7 @@ public class MainFragment extends RootFragment implements OnClickListener, ScanL
 	@Override
 	public void onScanResult(WifiScan scan) {
 		// use returned scan as the connection point to existing scans
-		ScanDisplayFragment frag = new ScanDisplayFragment();
+		GraphicsFragment frag = new GraphicsFragment();
 		frag.addScans(mActivity.getDataManager().getAllScansConnectedToScan(scan));
 
 		mActivity.setContentFragment(frag, true);

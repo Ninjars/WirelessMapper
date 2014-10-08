@@ -16,19 +16,17 @@ import android.view.VelocityTracker;
 import android.view.View;
 import android.view.View.OnTouchListener;
 
-import com.ninjarific.wirelessmapper.MainActivity;
-import com.ninjarific.wirelessmapper.database.orm.models.WifiScan;
-import com.ninjarific.wirelessmapper.engine.MainEngineThread;
-import com.ninjarific.wirelessmapper.engine.tasks.AddScansTask;
 import com.ninjarific.wirelessmapper.entities.actors.RootActor;
 import com.ninjarific.wirelessmapper.entities.actors.WifiPointActor;
 import com.ninjarific.wirelessmapper.entities.actors.WifiScanActor;
 import com.ninjarific.wirelessmapper.graphics.renderers.GroupNode;
 import com.ninjarific.wirelessmapper.graphics.renderers.WifiPointGroupNode;
 import com.ninjarific.wirelessmapper.graphics.renderers.WifiScanGroupNode;
+import com.ninjarific.wirelessmapper.listeners.GraphicsViewListener;
+import com.ninjarific.wirelessmapper.listeners.MainLoopUpdateListener;
 import com.ninjarific.wirelessmapper.utilties.MathUtils;
 
-public class GraphicsView extends SurfaceView implements OnTouchListener {
+public class GraphicsView extends SurfaceView implements OnTouchListener, MainLoopUpdateListener {
 	private static final String TAG = "GraphicsView";
 	private static final boolean DEBUG = true;
 	private static final float cViewFlingFrictionFactor = 4f;
@@ -36,12 +34,10 @@ public class GraphicsView extends SurfaceView implements OnTouchListener {
 	private static final float cFlingVelocityCutoff = 100;
 	
     private SurfaceHolder mSurfaceHolder;
-    private MainEngineThread mEngine;
-	private boolean mSurfaceReady;
-	private boolean mEngineStartCalled;
+	
+	private ArrayList<GraphicsViewListener> mListeners;
 
 	private GroupNode mRenderTree;
-	private ArrayList<WifiScan> mWifiScanToAdd;
 	private PointF mCenterTranslation;
 	private PointF mViewVelocity;
 	private VelocityTracker mVelocityTracker = null;
@@ -67,21 +63,18 @@ public class GraphicsView extends SurfaceView implements OnTouchListener {
 	
 	private void initialisation() {
 		if (DEBUG) Log.d(TAG, "initialisation()");
+		mListeners = new ArrayList<GraphicsViewListener>();
+        mRenderTree = new GroupNode();
+        
 		mSurfaceHolder = getHolder();
         mSurfaceHolder.addCallback(new SurfaceHolder.Callback() {
 			@Override
 			public void surfaceDestroyed(SurfaceHolder holder) {
 				if (DEBUG) Log.d(TAG, "surfaceDestroyed()");
 				boolean retry = true;
-				if (mEngine != null) {
-					mEngine.setRunning(false);
-				}
+				onSurfaceDestroyed();
 				while (retry) {
-					try {
-						mEngine.join();
-						retry = false;
-					} catch (InterruptedException e) {
-					}
+					retry = onThreadJoinAttempt();
 				}
 			}
 		
@@ -98,14 +91,45 @@ public class GraphicsView extends SurfaceView implements OnTouchListener {
 		});
 	}
 	
+	public void addListener(GraphicsViewListener l) {
+		if (DEBUG) Log.d(TAG, "addListener() " + l.getClass().getSimpleName());
+		mListeners.add(l);
+	}
+	
+	public void removeListener(GraphicsViewListener l) {
+		if (DEBUG) Log.d(TAG, "removeListener() " + l.getClass().getSimpleName());
+		mListeners.remove(l);
+	}
+	
+	public void onSurfaceDestroyed() {
+		for (GraphicsViewListener l : mListeners) {
+			l.onSurfaceDestroyed();
+		}
+	}
+	
+	public boolean onThreadJoinAttempt() {
+		boolean retry = false;
+		for (GraphicsViewListener l : mListeners) {
+			try {
+				l.attemptThreadReconnect();
+			} catch (InterruptedException e) {
+				retry = true;
+			}
+		}
+		return retry;
+	}
+	
     protected void onSurfaceCreated() {
 		if (DEBUG) Log.d(TAG, "onSurfaceCreated()");
 	 	// this is when view dimensions can be called on and things can get rolling
-    	mSurfaceReady = true;
-    	if (mEngineStartCalled && !mEngine.isRunning()) {
- 			mEngine.setRunning(true);
-    		mEngine.start();
-    	}
+		for (GraphicsViewListener l : mListeners) {
+			l.onSurfaceCreated();
+		}
+//    	mSurfaceReady = true;
+//    	if (mEngineStartCalled && !mEngine.isRunning()) {
+// 			mEngine.setRunning(true);
+//    		mEngine.start();
+//    	}
     }
     
     protected void onSurfaceChanged(int width, int height) {
@@ -132,33 +156,6 @@ public class GraphicsView extends SurfaceView implements OnTouchListener {
 		}
     }
     
-    public void startEngine(MainActivity activity) {
-		if (DEBUG) Log.d(TAG, "startEngine()");
-        mEngine = new MainEngineThread(this, activity.getDataManager());
-        mRenderTree = new GroupNode();
-        if (mCenterTranslation != null) {
-        	mRenderTree.setTranslation(mCenterTranslation);
-        }
-        
-        if (mWifiScanToAdd != null) {
-			AddScansTask task = new AddScansTask(mEngine, mWifiScanToAdd);
-			task.execute();
-//        	mEngine.addWifiScans(mWifiScanToAdd);
-        }
-
-	 	// we have a pointer to the activity for call backs and managers,
-        // and the engine is ready to run as soon as the surface is created.
-    	mEngineStartCalled = true;
-    	if (mSurfaceReady) {
- 			mEngine.setRunning(true);
-    		mEngine.start();
-    	}
-    }
-    
-    public void onDestroy() {
-    	mEngine.setRunning(false);
-    }
-    
     public void draw(Canvas canvas) {
     	if (canvas == null) {
     		return;
@@ -171,6 +168,7 @@ public class GraphicsView extends SurfaceView implements OnTouchListener {
 		if (actor == null) {
 			return;
 		}
+		
 		if (DEBUG) Log.d(TAG, "createRendererForActor() " + actor.getClass().getSimpleName());
 		
 		if (actor instanceof WifiScanActor) {
@@ -182,22 +180,10 @@ public class GraphicsView extends SurfaceView implements OnTouchListener {
 			GroupNode actorNode = new WifiPointGroupNode((WifiPointActor) actor);
 			mRenderTree.addChild(actorNode);
 		}
-
-	}
-	
-	public void addWifiScans(ArrayList<WifiScan> mScans) {
-		if (mEngine != null) {
-			AddScansTask task = new AddScansTask(mEngine, mScans);
-			task.execute();
-//			mEngine.addWifiScans(mScans);
-		} else {
-			mWifiScanToAdd = mScans;
-		}
 	}
 
-	public void setVelocity(PointF velocity) {
+	private void setVelocity(PointF velocity) {
 		mViewVelocity = velocity;
-		
 	}
 
 	private void translateView(float x, float y) {
@@ -205,14 +191,13 @@ public class GraphicsView extends SurfaceView implements OnTouchListener {
 		pos.x += x;
 		pos.y += y;
 		mRenderTree.setTranslation(pos);
-		
 	}
 
-	public void onEngineTick(long timeDelta) {
+	@Override
+	public void onUpdate(long timeDelta) {
 		if (mViewVelocity != null) {
 			updateViewTranslation(timeDelta);
 		}
-		
 	}
 
 	private void updateViewTranslation(long timeDelta) {
@@ -223,7 +208,6 @@ public class GraphicsView extends SurfaceView implements OnTouchListener {
 		pos.x += mViewVelocity.x * seconds;
 		pos.y += mViewVelocity.y * seconds;
 		mRenderTree.setTranslation(pos);
-		
 	}
 
 	@SuppressWarnings("fallthrough")
