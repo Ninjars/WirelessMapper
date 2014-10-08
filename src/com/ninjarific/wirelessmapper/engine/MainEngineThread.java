@@ -17,7 +17,6 @@ public class MainEngineThread extends Thread {
 	static final long FPS = 30;
 	
 	private GraphicsView mGraphicsView;
-	private GameController mController;
 	
 	private boolean mIsRunning = false;
 	private long mLastStartTime;
@@ -26,9 +25,8 @@ public class MainEngineThread extends Thread {
 	
 	private ArrayList<MainLoopUpdateListener> mUpdateListeners;
 	
-	public MainEngineThread(GraphicsView view, GameController controller) {
+	public MainEngineThread(GraphicsView view) {
 		mGraphicsView = view;
-		mController = controller;
 		mUpdateListeners = new ArrayList<MainLoopUpdateListener>();
 	}
 	

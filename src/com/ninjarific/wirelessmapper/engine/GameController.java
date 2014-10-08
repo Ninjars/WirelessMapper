@@ -28,7 +28,7 @@ public class GameController implements GraphicsViewListener, MainLoopUpdateListe
 	public GameController(GraphicsView graphicsView, DataManager dataManager) {
 		mGraphicsView = graphicsView;
 		mDataManager = dataManager;
-		mEngine = new MainEngineThread(graphicsView, this);
+		mEngine = new MainEngineThread(graphicsView);
 		mEngine.addUpdateLisener(mGraphicsView);
 		mEngine.addUpdateLisener(this);
 		mScanActors = new LongSparseArray<WifiScanActor>();
