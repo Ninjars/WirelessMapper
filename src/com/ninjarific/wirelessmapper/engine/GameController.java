@@ -136,9 +136,10 @@ public class GameController implements GraphicsViewListener, MainLoopUpdateListe
 	public void addScanDataObject(ScanDataObject scanData) {
 		if (DEBUG) Log.d(TAG, "addScanDataObject()");
 		if (!mScanData.contains(scanData)) {
-			// check for unconnected scans and add forces between
 			ArrayList<ScanDataObject> nonAdjacentData = new ArrayList<ScanDataObject>(mScanData);
+			mScanData.add(scanData);
 			if (DEBUG) Log.d(TAG, "\t adding new scan");
+			// check for unconnected scans and add forces between
 			for (WifiScan scan : scanData.getConnectedScans()) {
 				for (ScanDataObject data : mScanData) {
 					if (scan.equals(data.getScan())) {
@@ -148,10 +149,13 @@ public class GameController implements GraphicsViewListener, MainLoopUpdateListe
 			}
 			
 			for (ScanDataObject obj : nonAdjacentData) {
-				// TODO: add repulsive forces between obj and scanData
+				WifiScanActor actor1 = scanData.getActor();
+				WifiScanActor actor2 = obj.getActor();
+				RepulsiveConnection connection = new RepulsiveConnection(actor1, actor2);
+				actor1.addForceConnection(connection);
+				actor2.addForceConnection(connection);
 			}
 
-			mScanData.add(scanData);
 			createRendererForActor(scanData.getActor());
 		}
 	}
