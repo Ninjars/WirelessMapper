@@ -1,7 +1,5 @@
 package com.ninjarific.wirelessmapper.entities.actors;
 
-import android.graphics.PointF;
-
 import com.ninjarific.wirelessmapper.database.orm.models.WifiPoint;
 
 
@@ -13,7 +11,7 @@ public class WifiPointActor extends ForceActor {
 	private Long mId;
 	
 	public WifiPointActor(WifiPoint point) {
-		super(new PointF(0,0), 5);
+		super(getRandomPosition(), 5);
 		mName = point.getSsid();
 		mId = point.getId();
 			

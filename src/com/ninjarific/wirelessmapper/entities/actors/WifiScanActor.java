@@ -1,6 +1,5 @@
 package com.ninjarific.wirelessmapper.entities.actors;
 
-import android.graphics.PointF;
 import android.util.Log;
 
 import com.ninjarific.wirelessmapper.database.orm.models.WifiScan;
@@ -14,7 +13,7 @@ public class WifiScanActor extends ForceActor {
 	private Long mId;
 
 	public WifiScanActor(WifiScan scan) {
-		super(new PointF(0,0), 20);
+		super(getRandomPosition(), 100);
 		if (DEBUG) Log.d(TAG, "created");
 		mId = scan.getId();
 	}
@@ -22,5 +21,4 @@ public class WifiScanActor extends ForceActor {
 	public String getActorLabel() {
 		return mId.toString();
 	}
-	
 }

@@ -11,6 +11,7 @@ public class MobileActor extends RootActor {
 //	private static final double cInactiveDistanceCutoff = 0.001;
 	private static final double cFrictionConstant = 0.5;
 	private static final double cRandomVelMax = 100;
+	private static final double cRandomPoisitionMax = 150;
 	
 	private PointF mPosition;
 	private PointF mLastPosition;
@@ -43,7 +44,7 @@ public class MobileActor extends RootActor {
 		return mAcceleration;
 	}
 	
-	private PointF getRandomVelocity() {
+	private static PointF getRandomVelocity() {
 		float dx = (float) (-1 + Math.random() * 2);
 		float dy = (float) (-1 + Math.random() * 2);
 		
@@ -53,6 +54,20 @@ public class MobileActor extends RootActor {
 		
 		float fx = (float) (dx / mag * cRandomVelMax);
 		float fy = (float) (dy / mag * cRandomVelMax);
+		
+		return new PointF(fx, fy);
+	}
+	
+	protected static PointF getRandomPosition() {
+		float dx = (float) (-1 + Math.random() * 2);
+		float dy = (float) (-1 + Math.random() * 2);
+		
+		// normalise
+		double mag = Math.sqrt(dx * dx + dy * dy);
+		
+		
+		float fx = (float) (dx / mag * cRandomPoisitionMax);
+		float fy = (float) (dy / mag * cRandomPoisitionMax);
 		
 		return new PointF(fx, fy);
 	}
