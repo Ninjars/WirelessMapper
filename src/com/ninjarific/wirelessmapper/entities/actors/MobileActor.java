@@ -9,7 +9,7 @@ public class MobileActor extends RootActor {
 //	private static final double cInactiveVelocityCutoff = 0.01;
 //	private static final long cInactiveMsCutoff = 1500; // time before an almost stationary object stops itself
 //	private static final double cInactiveDistanceCutoff = 0.001;
-	private static final double cFrictionConstant = 0.5;
+	private static final double cFrictionConstant = 0.8;
 	private static final double cRandomVelMax = 100;
 	private static final double cRandomPoisitionMax = 150;
 	
