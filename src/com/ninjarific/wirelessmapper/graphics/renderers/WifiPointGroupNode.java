@@ -21,7 +21,6 @@ public class WifiPointGroupNode extends GroupNode {
 		this.addChild(rend);
 
 		if (DEBUG) Log.d(TAG, "starting position = " + actor.getPosition());
-		if (DEBUG) Log.d(TAG, "starting velocity = " + actor.getVelocity());
 		
 		BasicTextRenderNode label = new BasicTextRenderNode(actor.getActorLabel());
 		label.setColor(Constants.POINT_RENDERER_COLOR_LIGHT);
