@@ -688,7 +688,7 @@ public class DataManager {
 		return scanList;
 	}
 	
-	private HashSet<WifiScan> getScansConnectedToScan(WifiScan scan) {
+	public HashSet<WifiScan> getScansConnectedToScan(WifiScan scan) {
 		HashSet<WifiScan> connectedScans = new HashSet<WifiScan>();
 		connectedScans.add(scan);
 		

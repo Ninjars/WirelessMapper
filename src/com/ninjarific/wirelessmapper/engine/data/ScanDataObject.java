@@ -14,7 +14,7 @@ public class ScanDataObject extends DataObject {
 	private WifiScan mScan;
 	private ArrayList<WifiConnectionData> mConnections;
 	private List<WifiPoint> mConnectedPoints;
-	private ArrayList<WifiScan> mConnectedScans;
+	private ArrayList<WifiScan> mAdjacentScans;
 	private WifiScanActor mActor;
 	private boolean mPointsProcessed = false;
 
@@ -23,7 +23,8 @@ public class ScanDataObject extends DataObject {
 		mConnections = new ArrayList<WifiConnectionData>();
 		mConnections.addAll(dataManager.getConnectionsForScan(scan));
 		mConnectedPoints = dataManager.getPointsForScan(scan);
-		mConnectedScans = dataManager.getAllScansConnectedToScan(scan);
+		mAdjacentScans =  new ArrayList<WifiScan>();
+		mAdjacentScans.addAll(dataManager.getScansConnectedToScan(scan));
 		mActor = new WifiScanActor(scan);
 	}
 	
@@ -36,7 +37,7 @@ public class ScanDataObject extends DataObject {
 	}
 	
 	public ArrayList<WifiScan> getConnectedScans() {
-		return mConnectedScans;
+		return mAdjacentScans;
 	}
 	
 	public WifiScanActor getActor() {
