@@ -46,7 +46,12 @@ public class GameController implements GraphicsViewListener, MainLoopUpdateListe
     public void start() {
 		if (DEBUG) Log.d(TAG, "start()");
 		mEngine.setRunning(true);
-		mEngine.start();
+		try {
+			mEngine.start();
+		} catch (IllegalThreadStateException e) {
+			if (DEBUG) Log.d(TAG, "\t engine already running; restart loop");
+			mEngine.run();
+		}
     }
 
 	public void stop() {
@@ -68,11 +73,6 @@ public class GameController implements GraphicsViewListener, MainLoopUpdateListe
 		if (DEBUG) Log.d(TAG, "onSurfaceDestroyed()");
 		mEngine.setSurfaceState(false);
 		mEngine.setRunning(false);
-	}
-
-	@Override
-	public void attemptThreadReconnect() throws InterruptedException {
-		mEngine.join();
 	}
 	
 	/**

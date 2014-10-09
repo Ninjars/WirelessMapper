@@ -1,6 +1,6 @@
 package com.ninjarific.wirelessmapper.ui.views;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -35,7 +35,7 @@ public class GraphicsView extends SurfaceView implements OnTouchListener, MainLo
 	
     private SurfaceHolder mSurfaceHolder;
 	
-	private ArrayList<GraphicsViewListener> mListeners;
+	private HashSet<GraphicsViewListener> mListeners;
 
 	private GroupNode mRenderTree;
 	private PointF mCenterTranslation;
@@ -63,7 +63,7 @@ public class GraphicsView extends SurfaceView implements OnTouchListener, MainLo
 	
 	private void initialisation() {
 		if (DEBUG) Log.d(TAG, "initialisation()");
-		mListeners = new ArrayList<GraphicsViewListener>();
+		mListeners = new HashSet<GraphicsViewListener>();
         mRenderTree = new GroupNode();
         
 		mSurfaceHolder = getHolder();
@@ -71,11 +71,7 @@ public class GraphicsView extends SurfaceView implements OnTouchListener, MainLo
 			@Override
 			public void surfaceDestroyed(SurfaceHolder holder) {
 				if (DEBUG) Log.d(TAG, "surfaceDestroyed()");
-				boolean retry = true;
 				onSurfaceDestroyed();
-				while (retry) {
-					retry = onThreadJoinAttempt();
-				}
 			}
 		
 			@Override
@@ -106,18 +102,6 @@ public class GraphicsView extends SurfaceView implements OnTouchListener, MainLo
 		for (GraphicsViewListener l : mListeners) {
 			l.onSurfaceDestroyed();
 		}
-	}
-	
-	public boolean onThreadJoinAttempt() {
-		boolean retry = false;
-		for (GraphicsViewListener l : mListeners) {
-			try {
-				l.attemptThreadReconnect();
-			} catch (InterruptedException e) {
-				retry = true;
-			}
-		}
-		return retry;
 	}
 	
     protected void onSurfaceCreated() {

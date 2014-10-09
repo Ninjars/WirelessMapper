@@ -15,9 +15,10 @@ import com.ninjarific.wirelessmapper.MainActivity;
 import com.ninjarific.wirelessmapper.R;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiScan;
 import com.ninjarific.wirelessmapper.engine.GameController;
+import com.ninjarific.wirelessmapper.listeners.GraphicsViewListener;
 import com.ninjarific.wirelessmapper.ui.views.GraphicsView;
 
-public class GraphicsFragment extends Fragment {
+public class GraphicsFragment extends Fragment implements GraphicsViewListener {
 	private static final String TAG = "ScanDisplayFragment";
 	private static final boolean DEBUG = Constants.DEBUG;
 
@@ -41,6 +42,7 @@ public class GraphicsFragment extends Fragment {
 		
 		mEngineController = new GameController(mGraphicsView, mActivity.getDataManager());
 		mGraphicsView.addListener(mEngineController);
+		mGraphicsView.addListener(this);
 		
 	    return view;
 	}
@@ -70,12 +72,20 @@ public class GraphicsFragment extends Fragment {
 			mEngineController.addConnectedScansRecursively(mScans);
 			mScans = null;
 		}
-		mEngineController.start();
 	}
 	
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
+	}
+
+	@Override
+	public void onSurfaceCreated() {
+		mEngineController.start();
+	}
+
+	@Override
+	public void onSurfaceDestroyed() {
 		mEngineController.stop();
 	}
 
