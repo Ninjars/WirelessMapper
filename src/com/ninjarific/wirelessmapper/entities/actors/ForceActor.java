@@ -1,6 +1,7 @@
 package com.ninjarific.wirelessmapper.entities.actors;
 
-import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 import android.graphics.PointF;
 
@@ -8,7 +9,7 @@ import com.ninjarific.wirelessmapper.engine.forces.ForceConnection;
 
 public class ForceActor extends MobileActor {
 	private double mMass;
-	private ArrayList<ForceConnection> mForceConnections;
+	private Set<ForceConnection> mForceConnections;
 	private PointF mActingForce;
 
 	public ForceActor(PointF position, double mass) {
@@ -33,4 +34,7 @@ public class ForceActor extends MobileActor {
 		return mActingForce;
 	}
 	
+	public void addForceConnection(ForceConnection connection) {
+		mForceConnections.add(connection);
+	}
 }
