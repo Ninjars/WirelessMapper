@@ -24,6 +24,11 @@ public class RepulsiveConnection extends ForceConnection {
 			return outPoint;
 		}
 		
+		if (distanceSquared < 1) {
+			// clip force at min distance
+			distanceSquared = 1;
+		}
+		
 		double dx = pos1.x - pos2.x;
 		double dy = pos1.y - pos2.y;
 		
@@ -35,6 +40,7 @@ public class RepulsiveConnection extends ForceConnection {
 		
 		// normalise
 		double mag = Math.sqrt(dx * dx + dy * dy);
+		mag = Math.max(mag, 0.01);
 		
 		float fx = (float) (dx / mag * cForceMagnitude / distanceSquared);
 		float fy = (float) (dy / mag * cForceMagnitude / distanceSquared);
@@ -42,7 +48,7 @@ public class RepulsiveConnection extends ForceConnection {
 		if (fx < cMinimumForceCutoff) fx = 0;
 		if (fy < cMinimumForceCutoff) fy = 0;
 		
-		outPoint.set(fx, fy);
+		outPoint.set(-fx, -fy);
 		return outPoint;
 	}
 	
