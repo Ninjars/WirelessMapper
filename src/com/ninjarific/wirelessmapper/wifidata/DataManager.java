@@ -195,7 +195,7 @@ public class DataManager {
 			} else {
 				if (DEBUG) Log.d(TAG, "\t match found, using existing point" + matchingPoints.get(0));
 				point = matchingPoints.get(0);
-				point.setLevel(result.level);
+				point.setLevel(100 + result.level); // results are -100 for max signal, 0 for min signal
 				existingPoints.add(point);
 			}
 		}
@@ -679,7 +679,6 @@ public class DataManager {
 			}
 			connectedScans.addAll(newScans);
 		}
-		
 		
 		// just to return the original scan as the first item in the list
 		connectedScans.remove(scan);
