@@ -14,10 +14,12 @@ public class ForceActor extends MobileActor {
 	public ForceActor(PointF position, double mass) {
 		super(position);
 		mMass = mass;
+		mForceConnections = new HashSet<ForceConnection>();
+		mActingForce = new PointF(0,0);
 	}
 	
 	public PointF getPosition() {
-		return getPosition();
+		return super.getPosition();
 	}
 	
 	@Override

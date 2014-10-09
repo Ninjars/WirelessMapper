@@ -24,7 +24,6 @@ public class MobileActor extends RootActor {
 		mPosition = position;
 		mLastPosition = new PointF(mPosition.x, mPosition.y);
 		mVelocity = getRandomVelocity();
-		mAcceleration = getAcceleration();
 //		mIsActive = true;
 //		mLastActive = SystemClock.elapsedRealtime();
 	}
@@ -67,6 +66,10 @@ public class MobileActor extends RootActor {
 		mLastPosition.set(mPosition);
 		mPosition.x += mVelocity.x * deltaSeconds;
 		mPosition.y += mVelocity.y * deltaSeconds;
+	}
+	
+	protected PointF getPosition() {
+		return mPosition;
 	}
 	
 //	/**
