@@ -9,7 +9,7 @@ import com.ninjarific.wirelessmapper.database.orm.models.WifiScan;
 import com.ninjarific.wirelessmapper.entities.actors.WifiPointActor;
 import com.ninjarific.wirelessmapper.wifidata.DataManager;
 
-public class PointDataObject {
+public class PointDataObject extends DataObject {
 	
 	private WifiPoint mPoint;
 	private ArrayList<WifiConnectionData> mConnections;

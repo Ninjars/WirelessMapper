@@ -9,7 +9,7 @@ import com.ninjarific.wirelessmapper.database.orm.models.WifiScan;
 import com.ninjarific.wirelessmapper.entities.actors.WifiScanActor;
 import com.ninjarific.wirelessmapper.wifidata.DataManager;
 
-public class ScanDataObject {
+public class ScanDataObject extends DataObject {
 	
 	private WifiScan mScan;
 	private ArrayList<WifiConnectionData> mConnections;
