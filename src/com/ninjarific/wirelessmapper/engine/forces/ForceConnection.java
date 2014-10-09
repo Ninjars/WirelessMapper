@@ -13,7 +13,7 @@ public abstract class ForceConnection {
 
 	public ForceConnection(ForceActor actor1, ForceActor actor2) {
 		mActor1 = actor1;
-		mActor1 = actor2;
+		mActor2 = actor2;
 		mForce = new PointF();
 	}
 	
