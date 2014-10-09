@@ -1,16 +1,21 @@
 package com.ninjarific.wirelessmapper.engine;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import android.util.Log;
 
 import com.ninjarific.wirelessmapper.database.orm.models.WifiPoint;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiScan;
+import com.ninjarific.wirelessmapper.engine.data.DataObject;
 import com.ninjarific.wirelessmapper.engine.data.PointDataObject;
 import com.ninjarific.wirelessmapper.engine.data.ScanDataObject;
+import com.ninjarific.wirelessmapper.engine.forces.RepulsiveConnection;
 import com.ninjarific.wirelessmapper.engine.interfaces.ScanDataTaskInterface;
 import com.ninjarific.wirelessmapper.engine.tasks.AddScansTask;
 import com.ninjarific.wirelessmapper.entities.actors.RootActor;
+import com.ninjarific.wirelessmapper.entities.actors.WifiScanActor;
 import com.ninjarific.wirelessmapper.listeners.GraphicsViewListener;
 import com.ninjarific.wirelessmapper.listeners.MainLoopUpdateListener;
 import com.ninjarific.wirelessmapper.ui.views.GraphicsView;
@@ -22,8 +27,8 @@ public class GameController implements GraphicsViewListener, MainLoopUpdateListe
 	private DataManager mDataManager;
 	private GraphicsView mGraphicsView;
 	private MainEngineThread mEngine;
-	private ArrayList<PointDataObject> mPointData;
-	private ArrayList<ScanDataObject> mScanData;
+	private List<PointDataObject> mPointData;
+	private List<ScanDataObject> mScanData;
 	private ArrayList<AddScansTask> mAddScanTasks;
 
 	public GameController(GraphicsView graphicsView, DataManager dataManager) {
@@ -32,8 +37,8 @@ public class GameController implements GraphicsViewListener, MainLoopUpdateListe
 		mEngine = new MainEngineThread(graphicsView);
 		mEngine.addUpdateLisener(mGraphicsView);
 		mEngine.addUpdateLisener(this);
-		mScanData = new ArrayList<ScanDataObject>();
-		mPointData = new ArrayList<PointDataObject>();
+		mScanData = Collections.synchronizedList(new ArrayList<ScanDataObject>());
+		mPointData =  Collections.synchronizedList(new ArrayList<PointDataObject>());
 		mAddScanTasks = new ArrayList<AddScansTask>();
 	}
     
@@ -76,11 +81,15 @@ public class GameController implements GraphicsViewListener, MainLoopUpdateListe
 	 */
 	@Override
 	public void onUpdate(long timeDelta) {
-		for (ScanDataObject data : mScanData) {
-			data.getActor().update(timeDelta);
+		synchronized (mScanData) {
+			for (DataObject data : mScanData) {
+				data.getActor().update(timeDelta);
+			}
 		}
-		for (PointDataObject data : mPointData) {
-			data.getActor().update(timeDelta);
+		synchronized (mPointData) {
+			for (DataObject data : mPointData) {
+				data.getActor().update(timeDelta);
+			}
 		}
 	}
 	
@@ -104,9 +113,11 @@ public class GameController implements GraphicsViewListener, MainLoopUpdateListe
 
 	@Override
 	public PointDataObject getPointDataObject(WifiPoint point) {
-		for (PointDataObject data : mPointData) {
-			if (data.getPoint().equals(point)) {
-				return data;
+		synchronized (mPointData) {
+			for (PointDataObject data : mPointData) {
+				if (data.getPoint().equals(point)) {
+					return data;
+				}
 			}
 		}
 		return null;
@@ -114,9 +125,11 @@ public class GameController implements GraphicsViewListener, MainLoopUpdateListe
 
 	@Override
 	public ScanDataObject getScanDataObject(WifiScan scan) {
-		for (ScanDataObject data : mScanData) {
-			if (data.getScan().equals(scan)) {
-				return data;
+		synchronized (mScanData) {
+			for (ScanDataObject data : mScanData) {
+				if (data.getScan().equals(scan)) {
+					return data;
+				}
 			}
 		}
 		return null;

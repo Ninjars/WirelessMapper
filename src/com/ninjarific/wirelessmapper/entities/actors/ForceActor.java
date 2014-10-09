@@ -1,5 +1,6 @@
 package com.ninjarific.wirelessmapper.entities.actors;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -18,7 +19,7 @@ public class ForceActor extends MobileActor {
 	public ForceActor(PointF position, double mass) {
 		super(position);
 		mMass = mass;
-		mForceConnections = new HashSet<ForceConnection>();
+		mForceConnections = Collections.synchronizedSet(new HashSet<ForceConnection>());
 		mActingForce = new PointF(0,0);
 	}
 	
@@ -29,11 +30,14 @@ public class ForceActor extends MobileActor {
 	@Override
 	protected PointF getAcceleration() {
 		mActingForce.set(0,0);
-		for (ForceConnection connection : mForceConnections) {
-			PointF force = connection.getForce();
-			mActingForce.x += force.x / mMass;
-			mActingForce.y += force.y / mMass;
+		synchronized (mForceConnections) {
+			for (ForceConnection connection : mForceConnections) {
+				PointF force = connection.getForce(this);
+				mActingForce.x += force.x / mMass;
+				mActingForce.y += force.y / mMass;
+			}
 		}
+		
 		return mActingForce;
 	}
 	
