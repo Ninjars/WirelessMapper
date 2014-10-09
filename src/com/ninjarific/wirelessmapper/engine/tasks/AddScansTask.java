@@ -35,8 +35,8 @@ public class AddScansTask extends AsyncTask<Void, Void, Void> {
 		ArrayList<WifiScan> nextScans = new ArrayList<WifiScan>();
 		Set<WifiScan> processedScans = new HashSet<WifiScan>();
 		currentScans.addAll(mStartScans);
-		
-		while (!currentScans.isEmpty() && !nextScans.isEmpty() && !mCancelled) {
+
+		while (!currentScans.isEmpty() && !mCancelled) {
 			for (WifiScan scan : currentScans) {
 				// get or create data object for scan
 				ScanDataObject scanData = mDataInterface.getScanDataObject(scan);
