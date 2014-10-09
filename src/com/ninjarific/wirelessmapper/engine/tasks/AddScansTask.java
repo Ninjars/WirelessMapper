@@ -53,12 +53,17 @@ public class AddScansTask extends AsyncTask<Void, Void, Void> {
 				}
 
 				if (!scanData.allPointsProcessed()) {
+					ForceActor actor1 = scanData.getActor();
 					for (WifiConnectionData connection : scanData.getConnections()) {
 						PointDataObject pointData = mDataInterface.getPointDataObject(connection.getPoint());
 						if (pointData == null) {
 							pointData = new PointDataObject(connection.getPoint(), mDataManager);
 							mDataInterface.addPointDataObject(pointData);
 						}
+						ForceActor actor2 = pointData.getActor();
+						AttractToDistanceConnection forceConnection = new AttractToDistanceConnection(actor1, actor2, connection.getLevel());
+						actor1.addForceConnection(forceConnection);
+						actor2.addForceConnection(forceConnection);
 					}
 				}
 				
