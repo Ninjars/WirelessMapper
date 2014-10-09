@@ -1,29 +1,30 @@
 package com.ninjarific.wirelessmapper.engine;
 
 import java.util.ArrayList;
-import java.util.Set;
 
 import android.util.Log;
-import android.util.LongSparseArray;
 
-import com.ninjarific.wirelessmapper.database.orm.models.WifiConnectionData;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiPoint;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiScan;
-import com.ninjarific.wirelessmapper.entities.actors.WifiPointActor;
-import com.ninjarific.wirelessmapper.entities.actors.WifiScanActor;
+import com.ninjarific.wirelessmapper.engine.data.PointDataObject;
+import com.ninjarific.wirelessmapper.engine.data.ScanDataObject;
+import com.ninjarific.wirelessmapper.engine.interfaces.ScanDataTaskInterface;
+import com.ninjarific.wirelessmapper.engine.tasks.AddScansTask;
+import com.ninjarific.wirelessmapper.entities.actors.RootActor;
 import com.ninjarific.wirelessmapper.listeners.GraphicsViewListener;
 import com.ninjarific.wirelessmapper.listeners.MainLoopUpdateListener;
 import com.ninjarific.wirelessmapper.ui.views.GraphicsView;
 import com.ninjarific.wirelessmapper.wifidata.DataManager;
 
-public class GameController implements GraphicsViewListener, MainLoopUpdateListener {
+public class GameController implements GraphicsViewListener, MainLoopUpdateListener, ScanDataTaskInterface {
 	private static final String TAG = "GameController";
 	private static final boolean DEBUG = true;
 	private DataManager mDataManager;
 	private GraphicsView mGraphicsView;
 	private MainEngineThread mEngine;
-	private LongSparseArray<WifiPointActor> mPointActors;
-	private LongSparseArray<WifiScanActor> mScanActors;
+	private ArrayList<PointDataObject> mPointData;
+	private ArrayList<ScanDataObject> mScanData;
+	private ArrayList<AddScansTask> mAddScanTasks;
 
 	public GameController(GraphicsView graphicsView, DataManager dataManager) {
 		mGraphicsView = graphicsView;
@@ -31,8 +32,9 @@ public class GameController implements GraphicsViewListener, MainLoopUpdateListe
 		mEngine = new MainEngineThread(graphicsView);
 		mEngine.addUpdateLisener(mGraphicsView);
 		mEngine.addUpdateLisener(this);
-		mScanActors = new LongSparseArray<WifiScanActor>();
-		mPointActors = new LongSparseArray<WifiPointActor>();
+		mScanData = new ArrayList<ScanDataObject>();
+		mPointData = new ArrayList<PointDataObject>();
+		mAddScanTasks = new ArrayList<AddScansTask>();
 	}
     
     public void start() {
@@ -44,6 +46,9 @@ public class GameController implements GraphicsViewListener, MainLoopUpdateListe
 	public void stop() {
 		if (DEBUG) Log.d(TAG, "stop()");
     	mEngine.setRunning(false);
+    	for (AddScansTask task : mAddScanTasks) {
+    		task.cancel(true);
+    	}
 	}
 
 	@Override
@@ -71,87 +76,83 @@ public class GameController implements GraphicsViewListener, MainLoopUpdateListe
 	 */
 	@Override
 	public void onUpdate(long timeDelta) {
-		for (int i = 0, size = mScanActors.size(); i < size; i++) {
-			mScanActors.valueAt(i).update(timeDelta);
+		for (ScanDataObject data : mScanData) {
+			data.getActor().update(timeDelta);
 		}
-		for (int i = 0, size = mPointActors.size(); i < size; i++) {
-			mPointActors.valueAt(i).update(timeDelta);
+		for (PointDataObject data : mPointData) {
+			data.getActor().update(timeDelta);
 		}
 	}
 	
-//	public void addWifiScans(ArrayList<WifiScan> mScans) {
-//		if (mEngine != null) {
-//			AddScansTask task = new AddScansTask(mEngine, mScans);
-//			task.execute();
-//		}
-//	}
+	public void addConnectedScansRecursively(ArrayList<WifiScan> startScans) {
+		AddScansTask task = new AddScansTask(this, startScans, mDataManager);
+		task.execute();
+		mAddScanTasks.add(task);
+	}
 	
-	// TODO: revise this to follow the pattern for add single scan
-	// this function will make more sense when points retain their last known position
-	// and it won't be horrible to add all.
-	public void addWifiScans(ArrayList<WifiScan> scans) {
-		if (DEBUG) Log.d(TAG, "addWifiScan() " + scans);
-		for (WifiScan scan : scans) {
-			if (mScanActors.get(scan.getId()) == null) {
-//					Set<WifiConnectionData> connections = mDataManager.getConnectionsForScan(scan);
-				WifiScanActor actor = new WifiScanActor(scan);
-				mScanActors.put(scan.getId(), actor);
-				mGraphicsView.createRendererForActor(actor);
+	/*******
+	 * 
+	 *  ScanDataTaskInterface methods
+	 *  
+	 ******/
+	
+	@Override
+	public void onAddScansTaskComplete(AddScansTask task) {
+		mAddScanTasks.remove(task);
+	}
+
+	@Override
+	public PointDataObject getPointDataObject(WifiPoint point) {
+		for (PointDataObject data : mPointData) {
+			if (data.getPoint().equals(point)) {
+				return data;
 			}
 		}
-
-		for (WifiScan scan : scans) {
-			Set<WifiConnectionData> connections = mDataManager.getConnectionsForScan(scan);
-			createWifiPointActorsFromConnections(connections);
-			mScanActors.get(scan.getId()).createForceConnections(this);
-		}
+		return null;
 	}
 
-	private void createWifiPointActorsFromConnections(Set<WifiConnectionData> connections) {
-		if (DEBUG) Log.d(TAG, "addWifiPointsFromConnections() count " + connections.size());
-		for (WifiConnectionData connection : connections) {
-			WifiPoint point = connection.getPoint();
-
-			// create actors for points, if they don't already exist
-			if (mPointActors.get(point.getId()) == null) {
-				WifiPointActor actor = new WifiPointActor(point);
-				mPointActors.put(point.getId(), actor);
-				mGraphicsView.createRendererForActor(actor);
+	@Override
+	public ScanDataObject getScanDataObject(WifiScan scan) {
+		for (ScanDataObject data : mScanData) {
+			if (data.getScan().equals(scan)) {
+				return data;
 			}
 		}
+		return null;
 	}
 
-	public WifiScanActor getScanActorById(long id) {
-		if (DEBUG) Log.d(TAG, "getScanActorById() " + id);
-		if (DEBUG) Log.d(TAG, "\t scanActors: " + mScanActors.toString());
-		return mScanActors.get(id);
+	@Override
+	public void addPointDataObject(PointDataObject pointData) {
+		if (!mPointData.contains(pointData)) {
+			mPointData.add(pointData);
+			createRendererForActor(pointData.getActor());
+		}
 	}
 
-	public WifiPointActor getPointActorById(long id) {
-		if (DEBUG) Log.d(TAG, "getPointActorById() " + id);
-		return mPointActors.get(id);
-	}
-
-	public void addSingleScan(WifiScan scan) {
-		if (mScanActors.get(scan.getId()) == null) {
-			// create actor for scan if scan doesn't already exist
-			WifiScanActor actor = new WifiScanActor(scan);
-			mScanActors.put(scan.getId(), actor);
-			mGraphicsView.createRendererForActor(actor);
-
-			Set<WifiConnectionData> connections = mDataManager.getConnectionsForScan(scan);
-			
-			// create points
-			createWifiPointActorsFromConnections(connections);
-			
-			// look to establish all connections from scan to points
-			for (WifiConnectionData connection : connections) {
-				WifiPointActor pointActor = mPointActors.get(connection.getPoint().getId());
-				if (pointActor != null) {
-					actor.addForceSource(pointActor, connection.getLevel(), true);
-					pointActor.addForceSource(actor, connection.getLevel(), false);
+	@Override
+	public void addScanDataObject(ScanDataObject scanData) {
+		if (!mScanData.contains(scanData)) {
+			// check for unconnected scans and add forces between
+			ArrayList<ScanDataObject> nonAdjacentData = new ArrayList<ScanDataObject>(mScanData);
+			for (WifiScan scan : scanData.getConnectedScans()) {
+				for (ScanDataObject data : mScanData) {
+					if (scan.equals(data.getScan())) {
+						nonAdjacentData.remove(data);
+					}
 				}
 			}
+			
+			for (ScanDataObject obj : nonAdjacentData) {
+				// TODO: add repulsive forces between obj and scanData
+			}
+
+			mScanData.add(scanData);
+			createRendererForActor(scanData.getActor());
 		}
 	}
+	
+	private void createRendererForActor(RootActor actor) {
+		mGraphicsView.createRendererForActor(actor);
+	}
+	
 }

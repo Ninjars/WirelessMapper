@@ -16,6 +16,7 @@ public class ScanDataObject {
 	private List<WifiPoint> mConnectedPoints;
 	private ArrayList<WifiScan> mConnectedScans;
 	private WifiScanActor mActor;
+	private boolean mPointsProcessed = false;
 
 	public ScanDataObject(WifiScan scan, DataManager dataManager) {
 		mScan = scan;
@@ -42,7 +43,7 @@ public class ScanDataObject {
 		return mActor;
 	}
 	
-	WifiScan getScan() {
+	public WifiScan getScan() {
 		return mScan;
 	}
 	
@@ -54,6 +55,23 @@ public class ScanDataObject {
 	@Override
 	public int hashCode(){
 		return 29 + mScan.hashCode();
+	}
+
+	/*
+	 * returns true if the scan has been directly loaded before,
+	 * and so it can be assumed that its connections have been
+	 * made already.
+	 */
+	public boolean allPointsProcessed() {
+		return mPointsProcessed;
+	}
+
+	/*
+	 * call once all point connections have been processed,
+	 * to avoid duplicating forces
+	 */
+	public void finishedProcessingPoints() {
+		mPointsProcessed  = true;
 	}
 
 }

@@ -67,7 +67,7 @@ public class GraphicsFragment extends Fragment {
 		if (DEBUG) Log.i(TAG, "onResume()");
 		if (mScans != null) {
 			mActivity.showToastMessage("loading " + mScans.size() + " scans");
-			mEngineController.addWifiScans(mScans);
+			mEngineController.addConnectedScansRecursively(mScans);
 			mScans = null;
 		}
 		mEngineController.start();
