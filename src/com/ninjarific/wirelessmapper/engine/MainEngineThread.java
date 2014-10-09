@@ -40,6 +40,7 @@ public class MainEngineThread extends Thread {
 	
 	@Override
 	public void run() {
+		if (DEBUG) Log.i(TAG, "run()");
         long ticksPS = 1000 / FPS;
         long startTime;
         long sleepTime;
@@ -50,7 +51,7 @@ public class MainEngineThread extends Thread {
 			update(startTime - mLastStartTime);
 			mLastStartTime = startTime;
 			Canvas c = null;
-			if (mSurfaceIsReady ) {
+			if (mSurfaceIsReady) {
 				try {
 					c = mGraphicsView.getHolder().lockCanvas();
 					synchronized (mGraphicsView.getHolder()) {

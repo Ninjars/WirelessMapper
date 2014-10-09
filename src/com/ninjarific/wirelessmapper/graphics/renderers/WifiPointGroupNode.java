@@ -8,7 +8,7 @@ import com.ninjarific.wirelessmapper.graphics.renderers.BasicTextRenderNode.Vert
 
 public class WifiPointGroupNode extends GroupNode {
 	private static final String TAG = "WifiPointGroupNode";
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 
 	private WifiPointActor mActor;
 

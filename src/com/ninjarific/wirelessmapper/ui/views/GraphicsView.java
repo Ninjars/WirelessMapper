@@ -102,6 +102,7 @@ public class GraphicsView extends SurfaceView implements OnTouchListener, MainLo
 	}
 	
 	public void onSurfaceDestroyed() {
+		if (DEBUG) Log.d(TAG, "onSurfaceDestroyed()");
 		for (GraphicsViewListener l : mListeners) {
 			l.onSurfaceDestroyed();
 		}
@@ -170,7 +171,7 @@ public class GraphicsView extends SurfaceView implements OnTouchListener, MainLo
 			return;
 		}
 		
-		if (DEBUG) Log.d(TAG, "createRendererForActor() " + actor.getClass().getSimpleName());
+//		if (DEBUG) Log.d(TAG, "createRendererForActor() " + actor.getClass().getSimpleName());
 		
 		if (actor instanceof WifiScanActor) {
 			GroupNode actorNode = new WifiScanGroupNode((WifiScanActor) actor);

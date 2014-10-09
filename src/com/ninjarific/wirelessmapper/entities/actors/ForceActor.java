@@ -11,7 +11,7 @@ import com.ninjarific.wirelessmapper.engine.forces.ForceConnection;
 
 public class ForceActor extends MobileActor {
 	private static final String TAG = "ForceActor";
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 	private double mMass;
 	private Set<ForceConnection> mForceConnections;
 	private PointF mActingForce;

@@ -24,6 +24,7 @@ import com.ninjarific.wirelessmapper.wifidata.DataManager;
 public class GameController implements GraphicsViewListener, MainLoopUpdateListener, ScanDataTaskInterface {
 	private static final String TAG = "GameController";
 	private static final boolean DEBUG = true;
+	private static final boolean DEBUG_OBJECTS = false;
 	private DataManager mDataManager;
 	private GraphicsView mGraphicsView;
 	private MainEngineThread mEngine;
@@ -137,9 +138,9 @@ public class GameController implements GraphicsViewListener, MainLoopUpdateListe
 
 	@Override
 	public void addPointDataObject(PointDataObject pointData) {
-		if (DEBUG) Log.d(TAG, "addPointDataObject()");
+		if (DEBUG_OBJECTS) Log.d(TAG, "addPointDataObject()");
 		if (!mPointData.contains(pointData)) {
-			if (DEBUG) Log.d(TAG, "\t adding new point");
+			if (DEBUG_OBJECTS) Log.d(TAG, "\t adding new point");
 			mPointData.add(pointData);
 			createRendererForActor(pointData.getActor());
 		}
@@ -147,11 +148,11 @@ public class GameController implements GraphicsViewListener, MainLoopUpdateListe
 
 	@Override
 	public void addScanDataObject(ScanDataObject scanData) {
-		if (DEBUG) Log.d(TAG, "addScanDataObject()");
+		if (DEBUG_OBJECTS) Log.d(TAG, "addScanDataObject()");
 		if (!mScanData.contains(scanData)) {
 			ArrayList<ScanDataObject> nonAdjacentData = new ArrayList<ScanDataObject>(mScanData);
 			mScanData.add(scanData);
-			if (DEBUG) Log.d(TAG, "\t adding new scan");
+			if (DEBUG_OBJECTS) Log.d(TAG, "\t adding new scan");
 			// check for unconnected scans and add forces between
 			for (WifiScan scan : scanData.getConnectedScans()) {
 				for (ScanDataObject data : mScanData) {
