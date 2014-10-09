@@ -166,6 +166,7 @@ public class GraphicsView extends SurfaceView implements OnTouchListener, MainLo
 
 	public void createRendererForActor(RootActor actor) {
 		if (actor == null) {
+			if (DEBUG) Log.d(TAG, "createRendererForActor() - null actor passed");
 			return;
 		}
 		

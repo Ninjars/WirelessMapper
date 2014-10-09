@@ -28,7 +28,7 @@ import com.ninjarific.wirelessmapper.database.orm.models.WifiScan;
 
 public class DataManager {
 	private static final String TAG = "DataManager";
-	private static final boolean DEBUG = Constants.DEBUG;
+	private static final boolean DEBUG = Constants.DEBUG && false;
     
 	private MainActivity mMainActivity;
 

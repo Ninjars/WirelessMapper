@@ -5,16 +5,20 @@ import java.util.HashSet;
 import java.util.Set;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.ninjarific.wirelessmapper.database.orm.models.WifiConnectionData;
 import com.ninjarific.wirelessmapper.database.orm.models.WifiScan;
 import com.ninjarific.wirelessmapper.engine.data.PointDataObject;
 import com.ninjarific.wirelessmapper.engine.data.ScanDataObject;
+import com.ninjarific.wirelessmapper.engine.forces.AttractToDistanceConnection;
 import com.ninjarific.wirelessmapper.engine.interfaces.ScanDataTaskInterface;
+import com.ninjarific.wirelessmapper.entities.actors.ForceActor;
 import com.ninjarific.wirelessmapper.wifidata.DataManager;
 
 public class AddScansTask extends AsyncTask<Void, Void, Void> {
 	private static final String TAG = "AddScansTask";
+	private static final boolean DEBUG = true;
 
 	private ScanDataTaskInterface mDataInterface;
 	private DataManager mDataManager;
@@ -24,6 +28,7 @@ public class AddScansTask extends AsyncTask<Void, Void, Void> {
 	private boolean mCancelled = false;
 	
 	public AddScansTask(ScanDataTaskInterface dataInterface, ArrayList<WifiScan> startScans, DataManager dataManager) {
+		if (DEBUG) Log.d(TAG, "task created for " + startScans.size() + " scans");
 		mDataInterface = dataInterface;
 		mDataManager = dataManager;
 		mStartScans = startScans;
@@ -31,12 +36,14 @@ public class AddScansTask extends AsyncTask<Void, Void, Void> {
 	
 	@Override
 	protected Void doInBackground(Void... params) {
+		if (DEBUG) Log.d(TAG, "doInBackground()");
 		ArrayList<WifiScan> currentScans = new ArrayList<WifiScan>();
 		ArrayList<WifiScan> nextScans = new ArrayList<WifiScan>();
 		Set<WifiScan> processedScans = new HashSet<WifiScan>();
 		currentScans.addAll(mStartScans);
 
 		while (!currentScans.isEmpty() && !mCancelled) {
+			if (DEBUG) Log.d(TAG, "\t while loop iteration, " + currentScans.size() + " scans to process");
 			for (WifiScan scan : currentScans) {
 				// get or create data object for scan
 				ScanDataObject scanData = mDataInterface.getScanDataObject(scan);
@@ -67,6 +74,7 @@ public class AddScansTask extends AsyncTask<Void, Void, Void> {
 			nextScans = new ArrayList<WifiScan>();
 			
 		}
+		if (DEBUG) Log.d(TAG, "\t exited loop");
 		
 //		try {
 //			Thread.sleep(1500);
@@ -78,7 +86,8 @@ public class AddScansTask extends AsyncTask<Void, Void, Void> {
 
 	@Override
 	protected void onCancelled() {
-		mCancelled  = true;
+		if (DEBUG) Log.d(TAG, "onCancelled()");
+		mCancelled = true;
 	}
 
 	@Override

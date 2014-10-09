@@ -4,10 +4,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 import android.graphics.PointF;
+import android.util.Log;
 
 import com.ninjarific.wirelessmapper.engine.forces.ForceConnection;
 
 public class ForceActor extends MobileActor {
+	private static final String TAG = "ForceActor";
+	private static final boolean DEBUG = true;
 	private double mMass;
 	private Set<ForceConnection> mForceConnections;
 	private PointF mActingForce;
@@ -35,6 +38,7 @@ public class ForceActor extends MobileActor {
 	}
 	
 	public void addForceConnection(ForceConnection connection) {
+		if (DEBUG) Log.i(TAG, "addForceConnection() " + connection.getClass().getSimpleName());
 		mForceConnections.add(connection);
 	}
 }

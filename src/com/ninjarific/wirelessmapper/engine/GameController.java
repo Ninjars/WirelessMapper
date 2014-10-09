@@ -98,6 +98,7 @@ public class GameController implements GraphicsViewListener, MainLoopUpdateListe
 	
 	@Override
 	public void onAddScansTaskComplete(AddScansTask task) {
+		if (DEBUG) Log.d(TAG, "onAddScansTaskComplete()");
 		mAddScanTasks.remove(task);
 	}
 
@@ -123,7 +124,9 @@ public class GameController implements GraphicsViewListener, MainLoopUpdateListe
 
 	@Override
 	public void addPointDataObject(PointDataObject pointData) {
+		if (DEBUG) Log.d(TAG, "addPointDataObject()");
 		if (!mPointData.contains(pointData)) {
+			if (DEBUG) Log.d(TAG, "\t adding new point");
 			mPointData.add(pointData);
 			createRendererForActor(pointData.getActor());
 		}
@@ -131,9 +134,11 @@ public class GameController implements GraphicsViewListener, MainLoopUpdateListe
 
 	@Override
 	public void addScanDataObject(ScanDataObject scanData) {
+		if (DEBUG) Log.d(TAG, "addScanDataObject()");
 		if (!mScanData.contains(scanData)) {
 			// check for unconnected scans and add forces between
 			ArrayList<ScanDataObject> nonAdjacentData = new ArrayList<ScanDataObject>(mScanData);
+			if (DEBUG) Log.d(TAG, "\t adding new scan");
 			for (WifiScan scan : scanData.getConnectedScans()) {
 				for (ScanDataObject data : mScanData) {
 					if (scan.equals(data.getScan())) {
