@@ -6,8 +6,8 @@ import com.ninjarific.wirelessmapper.entities.actors.ForceActor;
 import com.ninjarific.wirelessmapper.utilties.MathUtils;
 
 public class RepulsiveConnection extends ForceConnection {
-	private static final double cMaxDistanceForForce = 300 * 300;
-	private static final double cForceMagnitude = 10;
+	private static final double cMaxDistanceForForce = 500 * 500;
+	private static final double cForceMagnitude = 100000;
 
 	public RepulsiveConnection(ForceActor actor1, ForceActor actor2) {
 		super(actor1, actor2);
